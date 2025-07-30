@@ -32,7 +32,7 @@ final readonly class HandleMonyaVoice implements TelegramHandlerInterface
         $inlineQueryResultVoices = [];
         foreach ($voices as $voice) {
             $inlineQueryResultVoices[] = new InlineQueryResultVoice(
-                $voice->id,
+                (string) $voice->id,
                 $voice->file->url,
                 $voice->text,
             );

@@ -11,11 +11,13 @@ use Illuminate\Support\Facades\Storage;
 use Lowel\Telepath\Core\Router\Handler\TelegramHandlerInterface;
 use Vjik\TelegramBot\Api\FailResult;
 use Vjik\TelegramBot\Api\TelegramBotApi;
-use Vjik\TelegramBot\Api\Type\Update\Update;
 use Vjik\TelegramBot\Api\Type\ReplyParameters;
+use Vjik\TelegramBot\Api\Type\Update\Update;
 
 final readonly class NewMessageFromMonya implements TelegramHandlerInterface
 {
+    const MONYA_CHAT_ID = 704888502;
+
     public function pattern(): ?string
     {
         return null;
@@ -23,9 +25,7 @@ final readonly class NewMessageFromMonya implements TelegramHandlerInterface
 
     public function __invoke(TelegramBotApi $telegram, Update $update): mixed
     {
-        $monyaChatId = (int) config('telegram.monya_chat_id');
-
-        if ($update->message->chat->id === $monyaChatId && $voice = $update->message->voice) {
+        if ($update->message->chat->id === self::MONYA_CHAT_ID && $voice = $update->message->voice) {
             Log::info('new moninskiy message');
 
             usleep((int) (1000 / 30));
