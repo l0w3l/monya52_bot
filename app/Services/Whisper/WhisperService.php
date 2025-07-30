@@ -43,10 +43,10 @@ final class WhisperService extends AbstractService implements WhisperServiceInte
         $json = json_decode($response->getBody()->getContents(), true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \RuntimeException('Failed to decode JSON response: ' . json_last_error_msg());
+            throw new \RuntimeException('Failed to decode JSON response: '.json_last_error_msg());
         }
 
-        if (!isset($json['text'])) {
+        if (! isset($json['text'])) {
             throw new \RuntimeException("Missing 'text' key in response.");
         }
 
