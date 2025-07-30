@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ea1fc7a44a26402aeb8319036ee20b25",
+    "content-hash": "7626796150977be6c0540411194a4aeb",
     "packages": [
         {
             "name": "brick/math",
@@ -2297,16 +2297,16 @@
         },
         {
             "name": "lowel/telepath",
-            "version": "0.1.2",
+            "version": "0.2.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/l0w3l/telepath.git",
-                "reference": "a196d1a34d00bb7039c025542d77efdb319e5a59"
+                "reference": "942c5d24654b74ad7c4999d5bcd34232a55b8ac3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/l0w3l/telepath/zipball/a196d1a34d00bb7039c025542d77efdb319e5a59",
-                "reference": "a196d1a34d00bb7039c025542d77efdb319e5a59",
+                "url": "https://api.github.com/repos/l0w3l/telepath/zipball/942c5d24654b74ad7c4999d5bcd34232a55b8ac3",
+                "reference": "942c5d24654b74ad7c4999d5bcd34232a55b8ac3",
                 "shasum": ""
             },
             "require": {
@@ -2364,7 +2364,7 @@
             ],
             "support": {
                 "issues": "https://github.com/l0w3l/telepath/issues",
-                "source": "https://github.com/l0w3l/telepath/tree/0.1.2"
+                "source": "https://github.com/l0w3l/telepath/tree/0.2.2"
             },
             "funding": [
                 {
@@ -2372,7 +2372,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-07-29T20:10:03+00:00"
+            "time": "2025-07-30T21:15:37+00:00"
         },
         {
             "name": "monolog/monolog",

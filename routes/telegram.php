@@ -3,10 +3,16 @@
 use App\Telegram\Handlers\Inline\HandleMonyaVoice;
 use App\Telegram\Handlers\NewMessageFromMonya;
 use App\Telegram\Handlers\StartCommand;
+use App\Telegram\Middlewares\Private\MonyaDetectMiddleware;
+use App\Telegram\Middlewares\Private\OnlyPrivateMiddleware;
 use Lowel\Telepath\Facades\Telepath;
 
-Telepath::onMessage(new StartCommand, '/start');
+Telepath::middleware(OnlyPrivateMiddleware::class)
+    ->group(function () {
+        Telepath::middleware(MonyaDetectMiddleware::class)
+            ->onMessage(NewMessageFromMonya::class);
 
-Telepath::onMessage(new NewMessageFromMonya);
+        Telepath::onMessage(StartCommand::class);
+    });
 
-Telepath::onInlineQuery(new HandleMonyaVoice);
+Telepath::onInlineQuery(HandleMonyaVoice::class);

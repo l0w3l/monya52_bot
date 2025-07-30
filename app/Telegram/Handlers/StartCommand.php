@@ -12,13 +12,12 @@ final readonly class StartCommand implements TelegramHandlerInterface
 {
     public function pattern(): ?string
     {
-        return null;
+        return '/start';
+
     }
 
-    public function __invoke(TelegramBotApi $telegram, Update $update): mixed
+    public function __invoke(TelegramBotApi $telegram, Update $update): void
     {
         $telegram->sendMessage($update->message->chat->id, 'я не из таких');
-
-        return null;
     }
 }

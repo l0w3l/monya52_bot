@@ -18,7 +18,7 @@ final readonly class HandleMonyaVoice implements TelegramHandlerInterface
         return null;
     }
 
-    public function __invoke(TelegramBotApi $telegram, Update $update): mixed
+    public function __invoke(TelegramBotApi $telegram, Update $update): void
     {
         $voiceService = App::make(VoiceServiceInterface::class);
 
@@ -44,7 +44,5 @@ final readonly class HandleMonyaVoice implements TelegramHandlerInterface
             cacheTime: 120,
             nextOffset: (string) ($offset + 10)
         );
-
-        return null;
     }
 }
