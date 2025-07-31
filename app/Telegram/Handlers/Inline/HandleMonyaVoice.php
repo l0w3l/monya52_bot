@@ -8,7 +8,7 @@ use App\Services\Voice\VoiceServiceInterface;
 use Illuminate\Support\Facades\App;
 use Lowel\Telepath\Core\Router\Handler\TelegramHandlerInterface;
 use Vjik\TelegramBot\Api\TelegramBotApi;
-use Vjik\TelegramBot\Api\Type\Inline\InlineQueryResultVoice;
+use Vjik\TelegramBot\Api\Type\Inline\InlineQueryResultCachedVoice;
 use Vjik\TelegramBot\Api\Type\Update\Update;
 
 final readonly class HandleMonyaVoice implements TelegramHandlerInterface
@@ -28,12 +28,12 @@ final readonly class HandleMonyaVoice implements TelegramHandlerInterface
 
         $voices = $voiceService->fullTextMatch($data, $offset, config('monya.inline.limit'));
 
-        /** @var InlineQueryResultVoice[] $inlineQueryResultVoices */
+        /** @var InlineQueryResultCachedVoice[] $inlineQueryResultVoices */
         $inlineQueryResultVoices = [];
         foreach ($voices as $voice) {
-            $inlineQueryResultVoices[] = new InlineQueryResultVoice(
+            $inlineQueryResultVoices[] = new InlineQueryResultCachedVoice(
                 (string) $voice->id,
-                $voice->file->url,
+                $voice->file->file_id,
                 $voice->text,
             );
         }
@@ -42,6 +42,7 @@ final readonly class HandleMonyaVoice implements TelegramHandlerInterface
             $update->inlineQuery->id,
             $inlineQueryResultVoices,
             cacheTime: config('monya.inline.ttl'),
+            isPersonal: config('monya.inline.personal'),
             nextOffset: (string) ($offset + 10)
         );
     }
