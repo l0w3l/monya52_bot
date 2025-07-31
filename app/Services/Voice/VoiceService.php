@@ -16,11 +16,7 @@ class VoiceService extends AbstractService implements VoiceServiceInterface
             return Voice::query()->offset($offset)->limit($limit)->get();
         }
 
-        return Voice::query()
-            ->select('*')
-            ->selectRaw('MATCH(text) AGAINST(? IN NATURAL LANGUAGE MODE) AS score', [$data])
-            ->whereFullText('text', $data)
-            ->orderByDesc('score')
+        return Voice::whereLike('text', "%{$data}%")
             ->offset($offset)
             ->limit($limit)
             ->get();
