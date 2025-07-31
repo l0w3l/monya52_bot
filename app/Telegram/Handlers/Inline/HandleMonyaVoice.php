@@ -26,7 +26,7 @@ final readonly class HandleMonyaVoice implements TelegramHandlerInterface
 
         $offset = (int) $update->inlineQuery->offset;
 
-        $voices = $voiceService->fullTextMatch($data, $offset);
+        $voices = $voiceService->fullTextMatch($data, $offset, config('monya.inline.limit'));
 
         /** @var InlineQueryResultVoice[] $inlineQueryResultVoices */
         $inlineQueryResultVoices = [];
@@ -41,7 +41,7 @@ final readonly class HandleMonyaVoice implements TelegramHandlerInterface
         $telegram->answerInlineQuery(
             $update->inlineQuery->id,
             $inlineQueryResultVoices,
-            cacheTime: 120,
+            cacheTime: config('monya.inline.ttl'),
             nextOffset: (string) ($offset + 10)
         );
     }
