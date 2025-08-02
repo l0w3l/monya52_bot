@@ -43,7 +43,7 @@ final readonly class HandleMonyaVoice implements TelegramHandlerInterface
             $inlineQueryResultVoices,
             cacheTime: config('monya.inline.ttl'),
             isPersonal: config('monya.inline.personal'),
-            nextOffset: (string) ($offset + 10)
+            nextOffset: (string) ($offset + config('monya.inline.limit'))
         );
     }
 }
