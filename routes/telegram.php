@@ -4,10 +4,10 @@ use App\Telegram\Handlers\Inline\HandleMonyaVoice;
 use App\Telegram\Handlers\NewMessageFromMonya;
 use App\Telegram\Handlers\StartCommand;
 use App\Telegram\Middlewares\Private\MonyaDetectMiddleware;
-use App\Telegram\Middlewares\Private\OnlyPrivateMiddleware;
 use Lowel\Telepath\Facades\Telepath;
+use Lowel\Telepath\Middlewares\Messages\Type\PrivateChatMiddleware;
 
-Telepath::middleware(OnlyPrivateMiddleware::class)
+Telepath::middleware(PrivateChatMiddleware::class)
     ->group(function () {
         Telepath::middleware(MonyaDetectMiddleware::class)
             ->onMessage(NewMessageFromMonya::class);

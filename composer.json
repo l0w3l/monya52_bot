@@ -14,7 +14,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "lowel/laravel-service-maker": "^1.0",
-        "lowel/telepath": "^0.2.2"
+        "lowel/telepath": "^0.3.4"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.6",
