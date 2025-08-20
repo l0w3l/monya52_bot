@@ -29,9 +29,10 @@ class UpdateMonyaData extends Command
      */
     public function handle()
     {
+        $monyaHosted = config('monya.hosted_url');
         /** @var WhisperServiceInterface $whisperService */
         $whisperService = app(WhisperServiceInterface::class);
-        $client = new Client(['base_uri' => config('money_data.base_uri') . '/api']);
+        $client = new Client(['base_uri' => $monyaHosted . '/api']);
 
         $this->info('Collecting monya voices...');
         $voices = Collection::fromJson($client->get('/voices')->getBody()->getContents());
@@ -41,7 +42,7 @@ class UpdateMonyaData extends Command
             if ($voice['text'] === null) {
                 $path = $voice['file']['file_path'];
                 $this->info("{$path}...");
-                $text = $whisperService->transcribe(config('monya.hosted_url') . '/storage/' . $path);
+                $text = $whisperService->transcribe($monyaHosted . '/storage/' . $path);
 
                 $response = $client->put('/voice/' . $voice['id'], ['json' => ['text' => $text]]);
 
