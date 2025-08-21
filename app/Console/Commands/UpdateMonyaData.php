@@ -6,7 +6,10 @@ use App\Services\Whisper\WhisperServiceInterface;
 use GuzzleHttp\Client;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Http;
+use Storage;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class UpdateMonyaData extends Command
 {
@@ -32,22 +35,40 @@ class UpdateMonyaData extends Command
         $monyaHosted = config('monya.hosted_url');
         /** @var WhisperServiceInterface $whisperService */
         $whisperService = app(WhisperServiceInterface::class);
-        $client = new Client(['base_uri' => $monyaHosted . '/api']);
 
-        $this->info('Collecting monya voices...');
-        $voices = Collection::fromJson($client->get('/voices')->getBody()->getContents());
+        $this->info("Collecting monya voices... ({$monyaHosted})})");
+        $response = Http::get($monyaHosted . '/api/voices');
+        $voices = $response->collect();
 
         $this->info("Processing monya voices...");
         foreach ($voices as $voice) {
             if ($voice['text'] === null) {
-                $path = $voice['file']['file_path'];
-                $this->info("{$path}...");
-                $text = $whisperService->transcribe($monyaHosted . '/storage/' . $path);
+                $urlPath = $monyaHosted . '/storage/' . $voice['file']['file_path'];
+                $this->info("Check {$urlPath}...");
 
-                $response = $client->put('/voice/' . $voice['id'], ['json' => ['text' => $text]]);
+                try {
+                    $file = Http::timeout(30)->get($urlPath);
 
-                if ($response->getStatusCode() === Response::HTTP_NO_CONTENT) {
-                    $this->info("Success!!!");
+                    if ($file->successful()) {
+                        Storage::disk('local')->put($voice['file']['file_path'], $file->body());
+
+                        $filePath = Storage::disk('local')->path($voice['file']['file_path']);
+                        $text = $whisperService->transcribe($filePath);
+
+                        $response = Http::asJson()->put($monyaHosted . '/api/voices/' . $voice['id'], ['text' => $text]);
+
+                        if ($response->noContent()) {
+                            $this->info("Success!!!");
+                        } else {
+                            $this->error("Update failure!!!");
+                        }
+                    } else {
+                        $this->error("File downloading failure!!!");
+                    }
+
+                } catch (Throwable $e) {
+                    dump($e);
+                    $this->error("File not found on the server!!!");
                 }
             }
         }

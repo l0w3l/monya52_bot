@@ -23,7 +23,6 @@ final readonly class NewMessageFromMonya implements TelegramHandlerInterface
 
     public function __invoke(TelegramBotApi $telegram, Update $update): void
     {
-        dump(1321312312312);
         $voice = $update->message->voice;
 
         if ($voice === null) {
@@ -31,8 +30,6 @@ final readonly class NewMessageFromMonya implements TelegramHandlerInterface
         }
 
         Log::info('new moninskiy message');
-
-        usleep((int) (1000 / 30));
 
         if (File::where('file_id', $voice->fileId)->exists()) {
             Log::info('Voice already exists, skipping...');
