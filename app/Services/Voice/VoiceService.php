@@ -18,6 +18,8 @@ class VoiceService extends AbstractService implements VoiceServiceInterface
         }
 
         return Voice::whereLike('text', "%{$data}%")
+            ->orderByDesc('updated_at')
+            ->orderByDesc('usage_count')
             ->offset($offset)
             ->limit($limit)
             ->get();
