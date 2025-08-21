@@ -1,6 +1,7 @@
 <?php
 
 use App\Telegram\Handlers\Inline\HandleMonyaVoice;
+use App\Telegram\Handlers\Inline\MonyaChosenResultHandler;
 use App\Telegram\Handlers\NewMessageFromMonya;
 use App\Telegram\Handlers\StartCommand;
 use App\Telegram\Middlewares\Private\MonyaDetectMiddleware;
@@ -16,3 +17,4 @@ Telepath::middleware(PrivateChatMiddleware::class)
     });
 
 Telepath::onInlineQuery(HandleMonyaVoice::class);
+Telepath::onInlineQueryChosenResult(MonyaChosenResultHandler::class);

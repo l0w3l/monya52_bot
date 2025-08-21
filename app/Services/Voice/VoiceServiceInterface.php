@@ -14,4 +14,6 @@ interface VoiceServiceInterface extends ServiceInterface
      * @return Collection<Voice>
      */
     public function fullTextMatch(string $data, int $offset = 0, int $limit = 10): Collection;
+
+    public function incUsage(int|Voice $voice): void;
 }

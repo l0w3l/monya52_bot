@@ -8,12 +8,12 @@ use Illuminate\Http\Request;
 
 class VoicesController extends Controller
 {
-    function index()
+    public function index()
     {
         return Voice::with('file')->get();
     }
 
-    function update(Voice $voice, Request $request)
+    public function update(Voice $voice, Request $request)
     {
         $text = $request->input('text');
 
