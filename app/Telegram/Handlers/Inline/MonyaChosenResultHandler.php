@@ -13,6 +13,6 @@ class MonyaChosenResultHandler implements TelegramHandlerInterface
 {
     public function __invoke(TelegramBotApi $api, Update $update, VoiceServiceInterface $voiceService): void
     {
-        $update->chosenInlineResult->resultId;
+        $voiceService->incUsage((int) $update->chosenInlineResult->resultId);
     }
 }
