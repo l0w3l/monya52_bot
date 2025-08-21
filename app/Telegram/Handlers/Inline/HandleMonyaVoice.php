@@ -34,7 +34,7 @@ final readonly class HandleMonyaVoice implements TelegramHandlerInterface
             $inlineQueryResultVoices[] = new InlineQueryResultCachedVoice(
                 (string) $voice->id,
                 $voice->file->file_id,
-                $voice->text,
+                $voice->prettyText(),
             );
         }
 

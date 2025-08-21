@@ -31,8 +31,6 @@ final readonly class NewMessageFromMonya implements TelegramHandlerInterface
 
         Log::info('new moninskiy message');
 
-        usleep((int) (1000 / 30));
-
         if (File::where('file_id', $voice->fileId)->exists()) {
             Log::info('Voice already exists, skipping...');
 

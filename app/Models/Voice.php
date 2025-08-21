@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -12,12 +13,24 @@ class Voice extends Model
         'duration',
         'mime_type',
         'text',
+        'count',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function prettyText(): string
+    {
+        $prefix = '';
+
+        if (Carbon::now()->diff($this->created_at)->days < 7) {
+            $prefix .= '🔥 ';
+        }
+
+        return $prefix.$this->text;
+    }
 
     public function file(): BelongsTo
     {
