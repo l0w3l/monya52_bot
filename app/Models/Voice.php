@@ -25,12 +25,12 @@ class Voice extends Model
     {
         $prefix = '';
 
-        if (Carbon::now()->diff($this->updated_at)->days < 1) {
+        if (Carbon::now()->diff($this->created_at)->days < 7) {
             $prefix .= '🔥 ';
         }
 
         if ($this->usage_count > 0) {
-            $prefix .= "[{$this->usage_count} ▶] ";
+            $prefix .= "[{$this->usage_count}] ";
         }
 
         return $prefix.$this->text;
