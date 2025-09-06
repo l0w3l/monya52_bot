@@ -6,8 +6,10 @@ namespace App\Services\Whisper;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Utils;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Support\Facades\File;
 use Lowel\LaravelServiceMaker\Services\AbstractService;
+use RuntimeException;
 
 final class WhisperService extends AbstractService implements WhisperServiceInterface
 {
@@ -24,7 +26,7 @@ final class WhisperService extends AbstractService implements WhisperServiceInte
     public function transcribe(string $audioFilePath): string
     {
         if (! File::exists($audioFilePath)) {
-            throw new \Illuminate\Contracts\Filesystem\FileNotFoundException("Audio file does not exist: {$audioFilePath}");
+            throw new FileNotFoundException("Audio file does not exist: {$audioFilePath}");
         }
 
         $response = $this->client->post("{$this->apiUrl}/transcribe", [
@@ -43,11 +45,11 @@ final class WhisperService extends AbstractService implements WhisperServiceInte
         $json = json_decode($response->getBody()->getContents(), true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \RuntimeException('Failed to decode JSON response: '.json_last_error_msg());
+            throw new RuntimeException('Failed to decode JSON response: '.json_last_error_msg());
         }
 
         if (! isset($json['text'])) {
-            throw new \RuntimeException("Missing 'text' key in response.");
+            throw new RuntimeException("Missing 'text' key in response.");
         }
 
         return $json['text'];

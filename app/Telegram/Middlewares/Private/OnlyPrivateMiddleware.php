@@ -10,10 +10,10 @@ use Vjik\TelegramBot\Api\Type\Update\Update;
 
 class OnlyPrivateMiddleware implements TelegramMiddlewareInterface
 {
-    public function __invoke(TelegramBotApi $telegram, Update $update, callable $callback): void
+    public function __invoke(TelegramBotApi $api, Update $update, callable $next): void
     {
         if ($update->message->chat->type === 'private') {
-            $callback();
+            $next();
         }
     }
 }
