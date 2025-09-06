@@ -12,7 +12,7 @@ use Vjik\TelegramBot\Api\Type\Inline\InlineQueryResultCachedVideo;
 use Vjik\TelegramBot\Api\Type\Inline\InlineQueryResultCachedVoice;
 use Vjik\TelegramBot\Api\Type\Update\Update;
 
-final readonly class HandleMonyaVoice implements TelegramHandlerInterface
+final readonly class HandleMonyaQueryHandler implements TelegramHandlerInterface
 {
     public function pattern(): ?string
     {

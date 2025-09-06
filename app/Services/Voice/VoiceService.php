@@ -37,4 +37,19 @@ class VoiceService extends AbstractService implements VoiceServiceInterface
         $voice->usage_count++;
         $voice->save();
     }
+
+    public function random(): Voice
+    {
+        return Voice::inRandomOrder()->with('file')->first() ?? throw new Exception('No voices found');
+    }
+
+    public function randomVoice(): Voice
+    {
+        return Voice::inRandomOrder()->with('file')->where('is_video', false)->first() ?? throw new Exception('No voices found');
+    }
+
+    public function randomVideo(): Voice
+    {
+        return Voice::inRandomOrder()->with('file')->where('is_video', true)->first() ?? throw new Exception('No voices found');
+    }
 }

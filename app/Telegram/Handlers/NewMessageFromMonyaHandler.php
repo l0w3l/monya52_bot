@@ -17,7 +17,7 @@ use Vjik\TelegramBot\Api\Type\ReactionTypeEmoji;
 use Vjik\TelegramBot\Api\Type\ReplyParameters;
 use Vjik\TelegramBot\Api\Type\VideoNote;
 
-final readonly class NewMessageFromMonya implements TelegramHandlerInterface
+final readonly class NewMessageFromMonyaHandler implements TelegramHandlerInterface
 {
     public function pattern(): ?string
     {
