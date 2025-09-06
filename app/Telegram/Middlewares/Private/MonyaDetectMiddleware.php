@@ -14,7 +14,7 @@ class MonyaDetectMiddleware implements TelegramMiddlewareInterface
 {
     const MONYA_CHAT_ID = 704888502;
 
-    public function __invoke(TelegramBotApi $telegram, Update $update, callable $callback): void
+    public function __invoke(TelegramBotApi $api, Update $update, callable $next): void
     {
         $senderUser = $update->message?->forwardOrigin;
         $from = $update->message?->from;
@@ -23,7 +23,7 @@ class MonyaDetectMiddleware implements TelegramMiddlewareInterface
             (($senderUser instanceof MessageOriginUser) && $senderUser->senderUser->id === self::MONYA_CHAT_ID) ||
             (($from instanceof User) && $from->id === self::MONYA_CHAT_ID)
         ) {
-            $callback();
+            $next();
         }
     }
 }

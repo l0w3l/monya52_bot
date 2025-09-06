@@ -13,7 +13,14 @@ class VoiceService extends AbstractService implements VoiceServiceInterface
 {
     public function fullTextMatch(string $data, int $offset = 0, int $limit = 10): Collection
     {
-        return Voice::whereLike('text', "%{$data}%")
+        return Voice::with('file')
+            ->whereLike('text', "%{$data}%")
+            ->orderByRaw('
+                CASE
+                    WHEN created_at >= ? THEN 0
+                    ELSE 1
+                END
+            ', [now()->subWeek()])
             ->orderByDesc('usage_count')
             ->orderByDesc('created_at')
             ->offset($offset)
