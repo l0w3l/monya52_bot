@@ -8,6 +8,7 @@ use App\Services\Voice\VoiceServiceInterface;
 use Illuminate\Support\Facades\App;
 use Lowel\Telepath\Core\Router\Handler\TelegramHandlerInterface;
 use Vjik\TelegramBot\Api\TelegramBotApi;
+use Vjik\TelegramBot\Api\Type\Inline\InlineQueryResultCachedVideo;
 use Vjik\TelegramBot\Api\Type\Inline\InlineQueryResultCachedVoice;
 use Vjik\TelegramBot\Api\Type\Update\Update;
 
@@ -18,7 +19,7 @@ final readonly class HandleMonyaVoice implements TelegramHandlerInterface
         return null;
     }
 
-    public function __invoke(TelegramBotApi $telegram, Update $update): void
+    public function __invoke(TelegramBotApi $api, Update $update): void
     {
         $voiceService = App::make(VoiceServiceInterface::class);
 
@@ -31,14 +32,22 @@ final readonly class HandleMonyaVoice implements TelegramHandlerInterface
         /** @var InlineQueryResultCachedVoice[] $inlineQueryResultVoices */
         $inlineQueryResultVoices = [];
         foreach ($voices as $voice) {
-            $inlineQueryResultVoices[] = new InlineQueryResultCachedVoice(
-                (string) $voice->id,
-                $voice->file->file_id,
-                $voice->prettyText(),
-            );
+            if ($voice->is_video) {
+                $inlineQueryResultVoices[] = new InlineQueryResultCachedVideo(
+                    (string) $voice->id,
+                    $voice->file->file_id,
+                    $voice->prettyText(),
+                );
+            } else {
+                $inlineQueryResultVoices[] = new InlineQueryResultCachedVoice(
+                    (string) $voice->id,
+                    $voice->file->file_id,
+                    $voice->prettyText(),
+                );
+            }
         }
 
-        $telegram->answerInlineQuery(
+        $api->answerInlineQuery(
             $update->inlineQuery->id,
             $inlineQueryResultVoices,
             cacheTime: config('monya.inline.ttl'),

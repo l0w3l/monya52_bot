@@ -14,6 +14,7 @@ class Voice extends Model
         'mime_type',
         'text',
         'count',
+        'is_video',
     ];
 
     protected $casts = [

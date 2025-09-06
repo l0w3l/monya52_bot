@@ -11,8 +11,11 @@ use Illuminate\Support\Facades\Storage;
 use Lowel\Telepath\Core\Router\Handler\TelegramHandlerInterface;
 use Vjik\TelegramBot\Api\FailResult;
 use Vjik\TelegramBot\Api\TelegramBotApi;
+use Vjik\TelegramBot\Api\Type\Chat;
+use Vjik\TelegramBot\Api\Type\Message;
+use Vjik\TelegramBot\Api\Type\ReactionTypeEmoji;
 use Vjik\TelegramBot\Api\Type\ReplyParameters;
-use Vjik\TelegramBot\Api\Type\Update\Update;
+use Vjik\TelegramBot\Api\Type\VideoNote;
 
 final readonly class NewMessageFromMonya implements TelegramHandlerInterface
 {
@@ -21,15 +24,14 @@ final readonly class NewMessageFromMonya implements TelegramHandlerInterface
         return null;
     }
 
-    public function __invoke(TelegramBotApi $telegram, Update $update): void
+    public function __invoke(TelegramBotApi $api, Chat $chat, Message $message): void
     {
-        $voice = $update->message->voice;
+        /** @var Voice|VideoNote $voice */
+        $voice = $message->voice ?? $message->videoNote;
 
         if ($voice === null) {
             return;
         }
-
-        Log::info('new moninskiy message');
 
         if (File::where('file_id', $voice->fileId)->exists()) {
             Log::info('Voice already exists, skipping...');
@@ -37,16 +39,16 @@ final readonly class NewMessageFromMonya implements TelegramHandlerInterface
             return;
         }
 
-        $file = $telegram->getFile($voice->fileId);
+        $file = $api->getFile($voice->fileId);
 
         if ($file instanceof FailResult) {
-            $telegram->sendMessage($update->message->chat->id, 'Failed to download file', replyParameters: new ReplyParameters($update->message->messageId));
+            $api->sendMessage($chat->id, 'Failed to download file', replyParameters: new ReplyParameters($message->messageId));
             Log::error("Failed to download file: {$voice->fileId}");
 
             return;
         }
 
-        $fileContent = $telegram->downloadFile($file);
+        $fileContent = $api->downloadFile($file);
 
         Storage::disk('public')->put(
             $file->filePath,
@@ -63,9 +65,12 @@ final readonly class NewMessageFromMonya implements TelegramHandlerInterface
         Voice::create([
             'file_id' => $file->id,
             'duration' => $voice->duration,
-            'mime_type' => $voice->mimeType,
+            'mime_type' => $voice->mimeType ?? 'video/ogg',
+            'is_video' => $voice instanceof VideoNote,
         ]);
 
         Log::info("{$file->file_path} saved...");
+
+        $api->setMessageReaction($chat->id, $message->messageId, [new ReactionTypeEmoji('✍')]);
     }
 }
