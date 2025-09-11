@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Telegram\Handlers\Inline;
 
-use App\Services\Voice\VoiceServiceInterface;
+use App\Models\Video;
+use App\Models\Voice;
+use App\Services\Telegram\File\FileServiceInterface;
 use Illuminate\Support\Facades\App;
 use Lowel\Telepath\Core\Router\Handler\TelegramHandlerInterface;
 use Vjik\TelegramBot\Api\TelegramBotApi;
@@ -21,28 +23,28 @@ final readonly class HandleMonyaQueryHandler implements TelegramHandlerInterface
 
     public function __invoke(TelegramBotApi $api, Update $update): void
     {
-        $voiceService = App::make(VoiceServiceInterface::class);
+        $voiceService = App::make(FileServiceInterface::class);
 
         $data = $update->inlineQuery->query;
 
         $offset = (int) $update->inlineQuery->offset;
 
-        $voices = $voiceService->fullTextMatch($data, $offset, config('monya.inline.limit'));
+        $files = $voiceService->fullTextMatch($data, $offset, config('monya.inline.limit'));
 
         /** @var InlineQueryResultCachedVoice[] $inlineQueryResultVoices */
         $inlineQueryResultVoices = [];
-        foreach ($voices as $voice) {
-            if ($voice->is_video) {
+        foreach ($files as $file) {
+            if ($file->fileable instanceof Video) {
                 $inlineQueryResultVoices[] = new InlineQueryResultCachedVideo(
-                    (string) $voice->id,
-                    $voice->file->file_id,
-                    $voice->prettyText(),
+                    (string) $file->id,
+                    $file->file_id,
+                    $file->fileable->prettyText(),
                 );
-            } else {
+            } elseif ($file->fileable instanceof Voice) {
                 $inlineQueryResultVoices[] = new InlineQueryResultCachedVoice(
-                    (string) $voice->id,
-                    $voice->file->file_id,
-                    $voice->prettyText(),
+                    (string) $file->id,
+                    $file->file_id,
+                    $file->fileable->prettyText(),
                 );
             }
         }

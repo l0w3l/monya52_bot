@@ -6,18 +6,25 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
-class Voice extends Model
+class Video extends Model
 {
     protected $fillable = [
-        'duration',
-        'mime_type',
         'text',
+        'duration',
+        'length',
+        'width',
+        'height',
     ];
 
-    protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
+    public function file(): MorphOne
+    {
+        return $this->morphOne(TgFile::class, 'fileable');
+    }
+
+    public function stat(): MorphOne
+    {
+        return $this->morphOne(Stat::class, 'statable');
+    }
 
     public function prettyText(): string
     {
@@ -28,15 +35,5 @@ class Voice extends Model
         }
 
         return $prefix.$this->text;
-    }
-
-    public function file(): MorphOne
-    {
-        return $this->morphOne(TgFile::class, 'fileable');
-    }
-
-    public function stat(): MorphOne
-    {
-        return $this->morphOne(Stat::class, 'statable');
     }
 }

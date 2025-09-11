@@ -13,11 +13,11 @@ use Lowel\Telepath\Middlewares\Messages\Type\PrivateChatMiddleware;
 
 Telepath::middleware(PrivateChatMiddleware::class)
     ->group(function () {
-        Telepath::middleware(MonyaDetectMiddleware::class)
-            ->onMessage(NewMessageFromMonyaHandler::class);
-
         Telepath::onMessage(StartCommand::class);
     });
+
+Telepath::middleware(MonyaDetectMiddleware::class)
+    ->onMessage(NewMessageFromMonyaHandler::class);
 
 Telepath::pattern('^\/random')->group(function () {
     Telepath::onMessage(RandomMonyaHandler::class, '$');
