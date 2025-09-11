@@ -13,7 +13,6 @@ use Vjik\TelegramBot\Api\FailResult;
 use Vjik\TelegramBot\Api\TelegramBotApi;
 use Vjik\TelegramBot\Api\Type\Chat;
 use Vjik\TelegramBot\Api\Type\Message;
-use Vjik\TelegramBot\Api\Type\ReactionTypeEmoji;
 use Vjik\TelegramBot\Api\Type\ReplyParameters;
 use Vjik\TelegramBot\Api\Type\VideoNote;
 
@@ -70,7 +69,5 @@ final readonly class NewMessageFromMonyaHandler implements TelegramHandlerInterf
         ]);
 
         Log::info("{$file->file_path} saved...");
-
-        $api->setMessageReaction($chat->id, $message->messageId, [new ReactionTypeEmoji('✍')]);
     }
 }

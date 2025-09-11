@@ -9,7 +9,6 @@ use Lowel\Telepath\Core\Router\Handler\TelegramHandlerInterface;
 use Vjik\TelegramBot\Api\TelegramBotApi;
 use Vjik\TelegramBot\Api\Type\Chat;
 use Vjik\TelegramBot\Api\Type\Message;
-use Vjik\TelegramBot\Api\Type\ReplyParameters;
 
 class RandomMonyaHandler implements TelegramHandlerInterface
 {
@@ -19,9 +18,9 @@ class RandomMonyaHandler implements TelegramHandlerInterface
             $voice = $voiceService->random();
 
             if ($voice->is_video) {
-                $api->sendVideoNote($chat->id, $voice->file->file_id, replyParameters: new ReplyParameters($message->messageId));
+                $api->sendVideoNote($chat->id, $voice->file->file_id);
             } else {
-                $api->sendVoice($chat->id, $voice->file->file_id, caption: $voice->text, replyParameters: new ReplyParameters($message->messageId));
+                $api->sendVoice($chat->id, $voice->file->file_id, caption: $voice->text);
             }
         } catch (\Exception $e) {
             // Just ignore if no voice found

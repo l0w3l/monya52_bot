@@ -8,16 +8,18 @@ use App\Telegram\Handlers\Random\RandomMonyaVideoNoteHandler;
 use App\Telegram\Handlers\Random\RandomMonyaVoiceHandler;
 use App\Telegram\Handlers\StartCommand;
 use App\Telegram\Middlewares\Private\MonyaDetectMiddleware;
+use App\Telegram\Middlewares\ReactionReplyMiddleware;
 use Lowel\Telepath\Facades\Telepath;
 use Lowel\Telepath\Middlewares\Messages\Type\PrivateChatMiddleware;
 
 Telepath::middleware(PrivateChatMiddleware::class)
     ->group(function () {
-        Telepath::middleware(MonyaDetectMiddleware::class)
-            ->onMessage(NewMessageFromMonyaHandler::class);
-
         Telepath::onMessage(StartCommand::class);
     });
+
+Telepath::middleware(MonyaDetectMiddleware::class)
+    ->onMessage(NewMessageFromMonyaHandler::class)
+    ->middleware(ReactionReplyMiddleware::class);
 
 Telepath::pattern('^\/random')->group(function () {
     Telepath::onMessage(RandomMonyaHandler::class, '$');
