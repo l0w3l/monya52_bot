@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class Voice extends Model
 {
@@ -15,6 +16,7 @@ class Voice extends Model
         'text',
         'count',
         'is_video',
+        'created_at',
     ];
 
     protected $casts = [
@@ -33,8 +35,18 @@ class Voice extends Model
         return $prefix.$this->text;
     }
 
+//    public function file(): MorphOne
+//    {
+//        return $this->morphOne(TgFile::class, 'fileable');
+//    }
+
     public function file(): BelongsTo
     {
         return $this->belongsTo(File::class);
+    }
+
+    public function stat(): MorphOne
+    {
+        return $this->morphOne(Stat::class, 'statable');
     }
 }
