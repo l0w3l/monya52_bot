@@ -67,7 +67,7 @@ return new class extends Migration
                     'file_path' => $file->file_path,
                     'fileable_id' => $video->id,
                     'fileable_type' => Video::class,
-                    'created_at' => $file->created_at
+                    'created_at' => $file->created_at,
                 ]);
 
                 Stat::create([

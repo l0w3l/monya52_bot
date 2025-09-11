@@ -31,8 +31,6 @@ final readonly class HandleMonyaQueryHandler implements TelegramHandlerInterface
 
         $files = $voiceService->fullTextMatch($data, $offset, config('monya.inline.limit'));
 
-        dump($files->toJson());
-
         /** @var InlineQueryResultCachedVoice[] $inlineQueryResultVoices */
         $inlineQueryResultVoices = [];
         foreach ($files as $file) {

@@ -24,7 +24,6 @@ return new class extends Migration
 
             $table->string('width')->nullable();
             $table->string('height')->nullable();
-            $table->string('file_size')->nullable();
 
             $table->timestamps();
         });

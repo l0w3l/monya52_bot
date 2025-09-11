@@ -16,9 +16,11 @@ class TgFile extends Model
         'file_path',
         'fileable_id',
         'fileable_type',
-        'created_at',
     ];
 
+    /**
+     * @return MorphTo<Voice|Video>
+     */
     public function fileable(): MorphTo
     {
         return $this->morphTo();

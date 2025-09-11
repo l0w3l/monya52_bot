@@ -14,8 +14,6 @@ class Video extends Model
         'length',
         'width',
         'height',
-        'file_size',
-        'created_at',
     ];
 
     public function file(): MorphOne
