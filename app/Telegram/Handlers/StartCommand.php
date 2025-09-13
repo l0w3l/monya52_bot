@@ -12,7 +12,7 @@ final readonly class StartCommand implements TelegramHandlerInterface
 {
     public function pattern(): ?string
     {
-        return '/start';
+        return '^\/start(@\w+)?$';
 
     }
 

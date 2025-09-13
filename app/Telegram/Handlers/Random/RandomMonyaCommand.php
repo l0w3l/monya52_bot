@@ -12,8 +12,13 @@ use Vjik\TelegramBot\Api\TelegramBotApi;
 use Vjik\TelegramBot\Api\Type\Chat;
 use Vjik\TelegramBot\Api\Type\Message;
 
-class RandomMonyaHandler implements TelegramHandlerInterface
+class RandomMonyaCommand implements TelegramHandlerInterface
 {
+    public function pattern(): ?string
+    {
+        return "^\/random(@\w+)?$";
+    }
+
     public function __invoke(TelegramBotApi $api, Chat $chat, Message $message, FileServiceInterface $fileService): void
     {
         try {

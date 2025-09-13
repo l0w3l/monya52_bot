@@ -10,16 +10,22 @@ use Vjik\TelegramBot\Api\TelegramBotApi;
 use Vjik\TelegramBot\Api\Type\Chat;
 use Vjik\TelegramBot\Api\Type\Message;
 
-class RandomMonyaVoiceHandler implements TelegramHandlerInterface
+class RandomMonyaVideoNoteCommand implements TelegramHandlerInterface
 {
+    public function pattern(): ?string
+    {
+        return "^\/random_video(@\w+)?$";
+    }
+
     public function __invoke(TelegramBotApi $api, Chat $chat, Message $message, FileServiceInterface $fileService): void
     {
         try {
-            $file = $fileService->randomVoice();
+            $file = $fileService->randomVideo();
 
-            $api->sendVoice($chat->id, $file->file_id, caption: $file->fileable->text);
+            $api->sendVideoNote($chat->id, $file->file_id);
         } catch (\Exception $e) {
-            // Just ignore if no voice found
+            // Just ignore if no video found
         }
+
     }
 }
