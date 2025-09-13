@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'chat_id' => (int) env('MONYA_CHAT_ID'),
+
     'inline' => [
         'limit' => (int) env('MONYA_INLINE_LIMIT', 10),
         'ttl' => (int) env('MONYA_INLINE_TTL', 300),

@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('files', function (Blueprint $table) {
+        Schema::create('voices', function (Blueprint $table) {
             $table->id();
 
-            $table->string('file_id');
-            $table->string('file_unique_id');
-            $table->integer('file_size')->nullable();
-            $table->string('file_path')->nullable();
+            $table->unsignedBigInteger('duration');
+
+            $table->string('mime_type')->nullable();
+            $table->text('text')->nullable();
 
             $table->timestamps();
+
+            $table->fullText('text');
         });
     }
 
@@ -28,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('files');
+        Schema::dropIfExists('voices');
     }
 };

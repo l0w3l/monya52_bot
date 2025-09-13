@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Services\Telegram\File;
 
 use App\Exceptions\Services\Telegram\File\CannotDownloadFileFromTelegramException;
+use App\Models\Media\AbstractMediaModel;
 use App\Models\TgFile;
-use App\Models\Video;
-use App\Models\Voice;
 use Illuminate\Database\Eloquent\Collection;
 use Lowel\LaravelServiceMaker\Services\ServiceInterface;
 use Vjik\TelegramBot\Api\Type\Video as TelegramVideo;
@@ -19,7 +18,7 @@ interface FileServiceInterface extends ServiceInterface
     /**
      * @throws CannotDownloadFileFromTelegramException
      */
-    public function save(TelegramVoice|TelegramVideo|TelegramVideoNote $telegramFile, Video|Voice $fileable): TgFile;
+    public function save(TelegramVoice|TelegramVideo|TelegramVideoNote $telegramFile, AbstractMediaModel $fileable): TgFile;
 
     public function exists(TelegramVoice|TelegramVideo|TelegramVideoNote $telegramFile): bool;
 

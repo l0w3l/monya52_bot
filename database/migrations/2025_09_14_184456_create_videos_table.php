@@ -26,6 +26,8 @@ return new class extends Migration
             $table->string('height')->nullable();
 
             $table->timestamps();
+
+            $table->fullText('text');
         });
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Media\MediaInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
@@ -15,6 +16,9 @@ class Stat extends Model
         'dislikes',
     ];
 
+    /**
+     * @return MorphTo<MediaInterface>
+     */
     public function statable(): MorphTo
     {
         return $this->morphTo();

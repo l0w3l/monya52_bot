@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Telegram\File;
 
 use App\Exceptions\Services\Telegram\File\CannotDownloadFileFromTelegramException;
+use App\Models\Media\AbstractMediaModel;
 use App\Models\TgFile;
 use App\Models\Video;
 use App\Models\Voice;
@@ -25,7 +26,7 @@ class FileService extends AbstractService implements FileServiceInterface
         public readonly TelegramBotApi $telegramBotApi,
     ) {}
 
-    public function save(TelegramVoice|TelegramVideo|TelegramVideoNote $telegramFile, Video|Voice $fileable): TgFile
+    public function save(TelegramVoice|TelegramVideo|TelegramVideoNote $telegramFile, AbstractMediaModel $fileable): TgFile
     {
         $file = $this->telegramBotApi->getFile($telegramFile->fileId);
         if ($file instanceof FailResult) {
@@ -49,14 +50,14 @@ class FileService extends AbstractService implements FileServiceInterface
         ]);
     }
 
-    public function exists(TelegramVoice|TelegramVideo|TelegramVideoNote $fileable): bool
+    public function exists(TelegramVoice|TelegramVideo|TelegramVideoNote $telegramFile): bool
     {
-        return TgFile::where('file_id', $fileable->fileId)->exists();
+        return TgFile::where('file_id', $telegramFile->fileId)->exists();
     }
 
-    public function doesntExists(TelegramVideo|TelegramVoice|TelegramVideoNote $fileable): bool
+    public function doesntExists(TelegramVideo|TelegramVoice|TelegramVideoNote $telegramFile): bool
     {
-        return ! $this->exists($fileable);
+        return ! $this->exists($telegramFile);
     }
 
     public function fullTextMatch(string $data, int $offset = 0, int $limit = 10): Collection

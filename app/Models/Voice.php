@@ -2,11 +2,9 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
+use App\Models\Media\AbstractMediaModel;
 
-class Voice extends Model
+class Voice extends AbstractMediaModel
 {
     protected $fillable = [
         'duration',
@@ -18,25 +16,4 @@ class Voice extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
-
-    public function prettyText(): string
-    {
-        $prefix = '';
-
-        if (Carbon::now()->diff($this->created_at)->days < 7) {
-            $prefix .= '🔥 ';
-        }
-
-        return $prefix.$this->text;
-    }
-
-    public function file(): MorphOne
-    {
-        return $this->morphOne(TgFile::class, 'fileable');
-    }
-
-    public function stat(): MorphOne
-    {
-        return $this->morphOne(Stat::class, 'statable');
-    }
 }
