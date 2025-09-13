@@ -7,7 +7,6 @@ namespace App\Telegram\Handlers\Inline;
 use App\Models\Video;
 use App\Models\Voice;
 use App\Services\Telegram\File\FileServiceInterface;
-use Illuminate\Support\Facades\App;
 use Lowel\Telepath\Core\Router\Handler\TelegramHandlerInterface;
 use Vjik\TelegramBot\Api\TelegramBotApi;
 use Vjik\TelegramBot\Api\Type\Inline\InlineQueryResultCachedVideo;
@@ -21,15 +20,12 @@ final readonly class HandleMonyaQueryHandler implements TelegramHandlerInterface
         return null;
     }
 
-    public function __invoke(TelegramBotApi $api, Update $update): void
+    public function __invoke(TelegramBotApi $api, Update $update, FileServiceInterface $fileService): void
     {
-        $voiceService = App::make(FileServiceInterface::class);
-
         $data = $update->inlineQuery->query;
-
         $offset = (int) $update->inlineQuery->offset;
 
-        $files = $voiceService->fullTextMatch($data, $offset, config('monya.inline.limit'));
+        $files = $fileService->fullTextMatch($data, $offset, config('monya.inline.limit'));
 
         /** @var InlineQueryResultCachedVoice[] $inlineQueryResultVoices */
         $inlineQueryResultVoices = [];
