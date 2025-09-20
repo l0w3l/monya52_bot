@@ -34,40 +34,53 @@ class UpdateMonyaData extends Command
         $whisperService = app(WhisperServiceInterface::class);
 
         $this->info("Collecting monya voices... ({$monyaHosted})})");
-        $response = Http::get($monyaHosted.'/api/voices');
-        $voices = $response->collect();
 
-        $this->info('Processing monya voices...');
-        foreach ($voices as $voice) {
-            if ($voice['text'] === null) {
-                $urlPath = $monyaHosted.'/storage/'.$voice['file']['file_path'];
-                $this->info("Check {$urlPath}...");
+        $offset = 0;
+        $limit = 100;
 
-                try {
-                    $file = Http::timeout(30)->get($urlPath);
+        while (true) {
+            $voices = Http::get($monyaHosted.'/api/media', compact('offset', 'limit'))->collect();
 
-                    if ($file->successful()) {
-                        Storage::disk('local')->put($voice['file']['file_path'], $file->body());
+            if ($voices->isEmpty()) {
+                break;
+            }
 
-                        $filePath = Storage::disk('local')->path($voice['file']['file_path']);
-                        $text = $whisperService->transcribe($filePath);
+            $this->info("{$offset}-".$offset + $limit.'...');
 
-                        $response = Http::asJson()->put($monyaHosted.'/api/voices/'.$voice['id'], ['text' => $text]);
+            foreach ($voices as $voice) {
+                if ($voice['fileable']['text'] === null) {
+                    $urlPath = $monyaHosted.'/storage/'.$voice['file_path'];
+                    $this->info("Check {$urlPath}...");
 
-                        if ($response->noContent()) {
-                            $this->info('Success!!!');
+                    try {
+                        $file = Http::timeout(30)->get($urlPath);
+
+                        if ($file->successful()) {
+                            Storage::disk('local')->put($voice['file_path'], $file->body());
+
+                            $filePath = Storage::disk('local')->path($voice['file_path']);
+                            $text = $whisperService->transcribe($filePath);
+
+                            $response = Http::asJson()->put("{$monyaHosted}/api/media/{$voice['id']}/text", ['text' => $text]);
+
+                            if ($response->noContent()) {
+                                $this->info('Success!!!');
+                            } else {
+                                $this->error('Update failure!!!');
+                            }
                         } else {
-                            $this->error('Update failure!!!');
+                            $this->error('File downloading failure!!!');
                         }
-                    } else {
-                        $this->error('File downloading failure!!!');
-                    }
 
-                } catch (Throwable $e) {
-                    dump($e);
-                    $this->error('File not found on the server!!!');
+                    } catch (Throwable $e) {
+                        dump($e);
+                        $this->error('File not found on the server!!!');
+                    }
                 }
             }
+
+            $offset += $limit;
         }
+
     }
 }
