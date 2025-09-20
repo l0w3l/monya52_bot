@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\VoicesController;
+use App\Http\Controllers\Api\MediaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Lowel\Telepath\TelegramAppFactoryInterface;
@@ -14,4 +14,7 @@ Route::post('/webhook', function () {
         ->webhook()->start();
 });
 
-Route::apiResource('voices', VoicesController::class)->only(['index', 'update']);
+Route::prefix('/media')->group(function () {
+    Route::get('/', [MediaController::class, 'index']);
+    Route::put('/{tg_file}/text/', [MediaController::class, 'update']);
+});
