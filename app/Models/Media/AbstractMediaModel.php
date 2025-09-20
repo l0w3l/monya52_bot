@@ -25,7 +25,7 @@ abstract class AbstractMediaModel extends Model
             $prefix .= '🔥 ';
         }
 
-        return $prefix.$this->text;
+        return substr($prefix.$this->text, 0, 256);
     }
 
     /**

@@ -27,7 +27,7 @@ class RandomMonyaCommand implements TelegramHandlerInterface
             if ($file->fileable instanceof Video) {
                 $api->sendVideoNote($chat->id, $file->file_id);
             } elseif ($file->fileable instanceof Voice) {
-                $api->sendVoice($chat->id, $file->file_id, caption: $file->fileable->text);
+                $api->sendVoice($chat->id, $file->file_id, caption: substr($file->fileable->text, 0, 1024));
             }
         } catch (\Exception $e) {
             // Just ignore if no voice found
