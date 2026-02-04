@@ -9,10 +9,6 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::post('/webhook', function () {
-    \Illuminate\Support\Facades\App::make(TelegramAppFactoryInterface::class)
-        ->webhook()->start();
-});
 
 Route::prefix('/media')->group(function () {
     Route::get('/', [MediaController::class, 'index']);
