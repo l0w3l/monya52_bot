@@ -5,27 +5,21 @@ declare(strict_types=1);
 namespace App\Telegram\Handlers\Random;
 
 use App\Services\Telegram\File\FileServiceInterface;
-use Lowel\Telepath\Core\Router\Handler\TelegramHandlerInterface;
-use Vjik\TelegramBot\Api\TelegramBotApi;
-use Vjik\TelegramBot\Api\Type\Chat;
-use Vjik\TelegramBot\Api\Type\Message;
+use Lowel\Telepath\Core\Router\Handler\AbstractTelegramHandler;
+use Lowel\Telepath\Facades\SpiritBox;
 
-class RandomMonyaVideoNoteCommand implements TelegramHandlerInterface
+class RandomMonyaVideoNoteCommand extends AbstractTelegramHandler
 {
-    public function pattern(): ?string
+    public function handler(): callable
     {
-        return "^\/random_video(@\w+)?$";
-    }
+        return static function (FileServiceInterface $fileService) {
+            try {
+                $file = $fileService->randomVideo();
 
-    public function __invoke(TelegramBotApi $api, Chat $chat, Message $message, FileServiceInterface $fileService): void
-    {
-        try {
-            $file = $fileService->randomVideo();
-
-            $api->sendVideoNote($chat->id, $file->file_id);
-        } catch (\Exception $e) {
-            // Just ignore if no video found
-        }
-
+                SpiritBox::sendVideoNote(videoNote: $file->file_id);
+            } catch (\Exception $e) {
+                // Just ignore if no video found
+            }
+        };
     }
 }

@@ -4,20 +4,15 @@ declare(strict_types=1);
 
 namespace App\Telegram\Handlers;
 
-use Lowel\Telepath\Core\Router\Handler\TelegramHandlerInterface;
-use Vjik\TelegramBot\Api\TelegramBotApi;
-use Vjik\TelegramBot\Api\Type\Update\Update;
+use Lowel\Telepath\Core\Router\Handler\AbstractTelegramHandler;
+use Lowel\Telepath\Facades\SpiritBox;
 
-final readonly class StartCommand implements TelegramHandlerInterface
+class StartCommand extends AbstractTelegramHandler
 {
-    public function pattern(): ?string
+    public function handler(): callable
     {
-        return '^\/start(@\w+)?$';
-
-    }
-
-    public function __invoke(TelegramBotApi $telegram, Update $update): void
-    {
-        $telegram->sendMessage($update->message->chat->id, 'я не из таких');
+        return static function () {
+            SpiritBox::sendMessage(__('telegram.messages.start'));
+        };
     }
 }

@@ -9,9 +9,9 @@ use App\Models\Media\AbstractMediaModel;
 use App\Models\TgFile;
 use Illuminate\Database\Eloquent\Collection;
 use Lowel\LaravelServiceMaker\Services\ServiceInterface;
-use Vjik\TelegramBot\Api\Type\Video as TelegramVideo;
-use Vjik\TelegramBot\Api\Type\VideoNote as TelegramVideoNote;
-use Vjik\TelegramBot\Api\Type\Voice as TelegramVoice;
+use Phptg\BotApi\Type\VideoNote as TelegramVideoNote;
+use Phptg\BotApi\Type\Voice as TelegramVoice;
+use Phptg\BotApi\Type\Video as TelegramVideo;
 
 interface FileServiceInterface extends ServiceInterface
 {
