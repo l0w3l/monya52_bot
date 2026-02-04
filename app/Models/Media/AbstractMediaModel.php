@@ -25,7 +25,7 @@ abstract class AbstractMediaModel extends Model
             $prefix .= '🔥 ';
         }
 
-        return substr($prefix.$this->text, 0, 256);
+        return mb_convert_encoding(substr($prefix.$this->text, 0, 256), 'UTF-8', 'UTF-8');
     }
 
     /**
