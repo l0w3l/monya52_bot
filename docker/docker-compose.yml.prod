@@ -1,5 +1,5 @@
 services:
-    nginx-monya52:
+    monya52-nginx:
         build: ./nginx
         ports:
             - "${NGINX_HTTP:-80}:80"
@@ -14,7 +14,7 @@ services:
             - ./nginx/config/sites-enabled/:/etc/nginx/sites-enabled/
             - ./nginx/config/nginxconfig.io/:/etc/nginx/nginxconfig.io/
 
-    fpm-monya52:
+    monya52-fpm:
         build:
             context: ./fpm
             args:
@@ -26,7 +26,7 @@ services:
             - "${STORAGE_APP}:/var/www/html"
             - ./fpm/config/www.conf:/usr/local/etc/php-fpm.d/www.conf
 
-    setup-monya52:
+    monya52-setup:
         build: ./setup
         networks:
             - backend
@@ -35,7 +35,7 @@ services:
         volumes:
             - "${STORAGE_APP}:/var/www/html"
 
-    scheduler-monya52:
+    monya52-scheduler:
         build:
             context: ./scheduler
             args:
@@ -48,7 +48,7 @@ services:
         volumes:
             - "${STORAGE_APP}:/var/www/html"
 
-    queue-monya52:
+    monya52-queue:
         build:
             context: ./queue
             args:
