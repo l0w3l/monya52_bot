@@ -14,26 +14,25 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
 use Lowel\LaravelServiceMaker\Services\AbstractService;
-use Vjik\TelegramBot\Api\FailResult;
-use Vjik\TelegramBot\Api\TelegramBotApi;
-use Vjik\TelegramBot\Api\Type\Video as TelegramVideo;
-use Vjik\TelegramBot\Api\Type\VideoNote as TelegramVideoNote;
-use Vjik\TelegramBot\Api\Type\Voice as TelegramVoice;
+use Lowel\Telepath\Facades\SpiritBox;
+use Phptg\BotApi\FailResult;
+use Phptg\BotApi\Type\VideoNote as TelegramVideoNote;
+use Phptg\BotApi\Type\Voice as TelegramVoice;
+use Phptg\BotApi\Type\Video as TelegramVideo;
 
 class FileService extends AbstractService implements FileServiceInterface
 {
     public function __construct(
-        public readonly TelegramBotApi $telegramBotApi,
     ) {}
 
     public function save(TelegramVoice|TelegramVideo|TelegramVideoNote $telegramFile, AbstractMediaModel $fileable): TgFile
     {
-        $file = $this->telegramBotApi->getFile($telegramFile->fileId);
+        $file = SpiritBox::getFile($telegramFile->fileId);
         if ($file instanceof FailResult) {
             throw new CannotDownloadFileFromTelegramException;
         }
 
-        $fileContent = $this->telegramBotApi->downloadFile($file);
+        $fileContent = SpiritBox::downloadFile($file);
 
         Storage::disk('public')->put(
             $file->filePath,

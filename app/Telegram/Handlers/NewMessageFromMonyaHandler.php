@@ -9,51 +9,49 @@ use App\Services\Telegram\Stat\StatServiceInterface;
 use App\Services\Telegram\Video\VideoServiceInterface;
 use App\Services\Telegram\Voice\VoiceServiceInterface;
 use Illuminate\Support\Facades\Log;
-use Lowel\Telepath\Core\Router\Handler\TelegramHandlerInterface;
+use Lowel\Telepath\Core\Router\Handler\AbstractTelegramHandler;
 use Lowel\Telepath\Enums\ChatTypesEnum;
-use Vjik\TelegramBot\Api\TelegramBotApi;
-use Vjik\TelegramBot\Api\Type\Chat;
-use Vjik\TelegramBot\Api\Type\Message;
-use Vjik\TelegramBot\Api\Type\ReactionTypeEmoji;
-use Vjik\TelegramBot\Api\Type\VideoNote as TelegramVideoNote;
-use Vjik\TelegramBot\Api\Type\Voice as TelegramVoice;
+use Lowel\Telepath\Facades\SpiritBox;
+use Phptg\BotApi\Type\Chat;
+use Phptg\BotApi\Type\Message;
+use Phptg\BotApi\Type\ReactionTypeEmoji;
+use Phptg\BotApi\Type\VideoNote as TelegramVideoNote;
+use Phptg\BotApi\Type\Voice as TelegramVoice;
 
-final readonly class NewMessageFromMonyaHandler implements TelegramHandlerInterface
+class NewMessageFromMonyaHandler extends AbstractTelegramHandler
 {
-    public function pattern(): ?string
+    public function handler(): callable
     {
-        return null;
-    }
+        return static function (
+            Chat $chat,
+            Message $message,
+            VoiceServiceInterface $voiceService,
+            VideoServiceInterface $videoService,
+            FileServiceInterface $fileService,
+            StatServiceInterface $statService
+        ) {
+            $telegramFile = $message->voice ?? $message->videoNote;
 
-    public function __invoke(TelegramBotApi $api,
-        Chat $chat,
-        Message $message,
-        VoiceServiceInterface $voiceService,
-        VideoServiceInterface $videoService,
-        FileServiceInterface $fileService,
-        StatServiceInterface $statService): void
-    {
-        $telegramFile = $message->voice ?? $message->videoNote;
+            if ($telegramFile !== null && $fileService->doesntExists($telegramFile)) {
+                $fileable = match ($telegramFile::class) {
+                    TelegramVideoNote::class => $videoService->saveVideo($telegramFile),
+                    TelegramVoice::class => $voiceService->saveVoice($telegramFile),
+                };
 
-        if ($telegramFile !== null && $fileService->doesntExists($telegramFile)) {
-            $fileable = match ($telegramFile::class) {
-                TelegramVideoNote::class => $videoService->saveVideo($telegramFile),
-                TelegramVoice::class => $voiceService->saveVoice($telegramFile),
-            };
+                $statService->createFor($fileable);
 
-            $statService->createFor($fileable);
+                $file = $fileService->save(
+                    $telegramFile, $fileable
+                );
 
-            $file = $fileService->save(
-                $telegramFile, $fileable
-            );
+                Log::info("{$file->file_path} saved...");
 
-            Log::info("{$file->file_path} saved...");
-
-            if (ChatTypesEnum::isPrivate($chat)) {
-                $api->setMessageReaction($chat->id, $message->messageId, [new ReactionTypeEmoji('✍')]);
+                if (ChatTypesEnum::isPrivate($chat)) {
+                    SpiritBox::setMessageReaction($chat->id, $message->messageId, [new ReactionTypeEmoji('✍')]);
+                }
+            } else {
+                Log::info('Voice already exists or not found, skipping...');
             }
-        } else {
-            Log::info('Voice already exists or not found, skipping...');
-        }
+        };
     }
 }

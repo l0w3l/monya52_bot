@@ -6,7 +6,7 @@ namespace App\Services\Telegram\Voice;
 
 use App\Models\Voice;
 use Lowel\LaravelServiceMaker\Services\ServiceInterface;
-use Vjik\TelegramBot\Api\Type\Voice as TelegramVoice;
+use Phptg\BotApi\Type\Voice as TelegramVoice;
 
 interface VoiceServiceInterface extends ServiceInterface
 {

@@ -6,8 +6,8 @@ namespace App\Services\Telegram\Video;
 
 use App\Models\Video;
 use Lowel\LaravelServiceMaker\Services\ServiceInterface;
-use Vjik\TelegramBot\Api\Type\Video as TelegramVideo;
-use Vjik\TelegramBot\Api\Type\VideoNote;
+use Phptg\BotApi\Type\Video as TelegramVideo;
+use Phptg\BotApi\Type\VideoNote;
 
 interface VideoServiceInterface extends ServiceInterface
 {

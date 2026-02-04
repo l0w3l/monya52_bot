@@ -5,24 +5,17 @@ declare(strict_types=1);
 namespace App\Telegram\Handlers\Random;
 
 use App\Services\Telegram\File\FileServiceInterface;
-use Lowel\Telepath\Core\Router\Handler\TelegramHandlerInterface;
-use Vjik\TelegramBot\Api\TelegramBotApi;
-use Vjik\TelegramBot\Api\Type\Chat;
-use Vjik\TelegramBot\Api\Type\Message;
+use Lowel\Telepath\Core\Router\Handler\AbstractTelegramHandler;
+use Lowel\Telepath\Facades\SpiritBox;
 
-class RandomMonyaVoiceCommand implements TelegramHandlerInterface
+class RandomMonyaVoiceCommand extends AbstractTelegramHandler
 {
-    public function pattern(): ?string
-    {
-        return "^\/random_voice(@\w+)?$";
-    }
-
-    public function __invoke(TelegramBotApi $api, Chat $chat, Message $message, FileServiceInterface $fileService): void
+    public function __invoke(FileServiceInterface $fileService): void
     {
         try {
             $file = $fileService->randomVoice();
 
-            $api->sendVoice($chat->id, $file->file_id, caption: substr($file->fileable->text, 0, 1024));
+            SpiritBox::sendVoice(voice: $file->file_id, caption: substr($file->fileable->text, 0, 1024));
         } catch (\Exception $e) {
             // Just ignore if no voice found
         }

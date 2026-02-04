@@ -1,5 +1,7 @@
 <?php
 
+use Lowel\Telepath\Enums\ParseModeEnum;
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -11,11 +13,8 @@ return [
     |
     */
 
-    'token' => env('TELEPATH_TOKEN'),
     'base_uri' => env('TELEPATH_BASE_URL', 'https://api.telegram.org'),
     'conversation' => [
-        'storage' => env('TELEPATH_CONVERSATION_STORAGE', 'file'),
-        'enabled' => (bool) env('TELEPATH_CONVERSATION', true),
         'ttl' => (int) env('TELEPATH_CONVERSATION_TIMEOUT', 60),
     ],
 
@@ -26,14 +25,34 @@ return [
 
     'profile' => 'default',
 
+    'hook' => [
+        'async' => env('TELEPATH_HOOK_ASYNC', false),
+    ],
+
+    /**
+     * see @link \Lowel\Telepath\Config\Profile
+     */
     'profiles' => [
         'default' => [
+            'token' => env('TELEPATH_TOKEN'),
+            'username' => env('TELEPATH_USERNAME', ''),
             'offset' => (int) env('TELEPATH_OFFSET', 0),
+            'limit' => (int) env('TELEPATH_LIMIT', 100),
             'timeout' => (int) env('TELEPATH_TIMEOUT', 30),
-            'allowed_updates' => explode(',', env('TELEPATH_ALLOWED_UPDATES', '*')),
+            'allowed_updates' => env('TELEPATH_ALLOWED_UPDATES', '*'),
 
-            'admins' => explode(',', env('TELEPATH_ADMINS', '')),
-            'banned' => explode(',', env('TELEPATH_BANNED', '')),
+            'parse_mode' => ParseModeEnum::MARKDOWN->value,
+
+            // todo: currently works only in webhook
+            // BE CAREFUL: enabling this option may lead to lost updates if your bot cannot process them in time
+            'repeat_after_exception' => (int) env('TELEPATH_REPEAT_AFTER_EXCEPTION', 1),
+            'timeout_after_exception' => (int) env('TELEPATH_TIMEOUT_AFTER_EXCEPTION', 5),
+
+            'whitelist' => env('TELEPATH_ADMINS', ''),
+            'blacklist' => env('TELEPATH_BANNED', ''),
+
+            // will send report about unhandled exceptions to the given chat_id instance (chat or dm)
+            'chat_id_fallback' => (int) env('TELEPATH_CHAT_ID_FALLBACK', null),
         ],
     ],
 ];
