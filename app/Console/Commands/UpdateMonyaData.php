@@ -33,7 +33,7 @@ class UpdateMonyaData extends Command
         /** @var WhisperServiceInterface $whisperService */
         $whisperService = app(WhisperServiceInterface::class);
 
-        $this->info("Collecting monya voices... ({$monyaHosted})})");
+        $this->info("Collecting monya voices... ({$monyaHosted}))");
 
         $offset = 0;
         $limit = 100;
