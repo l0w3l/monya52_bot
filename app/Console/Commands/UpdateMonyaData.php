@@ -36,7 +36,7 @@ class UpdateMonyaData extends Command
         $this->info("Collecting monya voices... ({$monyaHosted}))");
 
         $offset = 0;
-        $limit = 100;
+        $limit = 200;
 
         while (true) {
             $voices = Http::get($monyaHosted.'/api/media', compact('offset', 'limit'))->collect();

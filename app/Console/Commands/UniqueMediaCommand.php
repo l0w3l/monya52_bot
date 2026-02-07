@@ -33,15 +33,29 @@ class UniqueMediaCommand extends Command
 
         $copiesCount = 0;
 
-        DB::transaction(function () {
+        DB::transaction(function () use (&$copiesCount) {
             TgFile::with('fileable')->whereHas('fileable', function (Builder $builder) {
                 $builder->whereNotNull('text');
             })->chunk(100, function (Collection $chunk) use (&$copiesCount) {
                 /** @var TgFile $file */
                 foreach ($chunk as $file) {
                     $originalFile = TgFile::whereHas('fileable', function (Builder $builder) use ($file) {
-                        $builder->where('text', $file->fileable->text);
+                        $builder->where('text', trim($file->fileable->text));
                     })->first();
+
+                    if ($originalFile === null) {
+                        $file->fileable->update(['text' => trim($file->fileable->text)]);
+
+                        $originalFile = TgFile::whereHas('fileable', function (Builder $builder) use ($file) {
+                            $builder->where('text', trim($file->fileable->text));
+                        })->first();
+                    }
+
+                    if ($originalFile->created_at > $file->created_at) {
+                        $tmp = $originalFile;
+                        $originalFile = $file;
+                        $file = $tmp;
+                    }
 
                     if ($file->id !== $originalFile->id) {
                         $this->info("FoundCopy: {$file->id} {$file->created_at} (original: {$originalFile->id} {$originalFile->created_at})");

@@ -80,6 +80,8 @@ services:
         build: ./whisper
         networks:
             - backend
+        volumes:
+            - "${STORAGE_WHISPER}:/root/.cache/whisper"
         environment:
               WHISPER_MODEL: ${WHISPER_MODEL:-base}
         restart: no
