@@ -30,8 +30,12 @@ class UpdateMonyaData extends Command
     public function handle()
     {
         $monyaHosted = config('monya.hosted_url');
-        /** @var WhisperServiceInterface $whisperService */
+        $token = config('monya.token');
         $whisperService = app(WhisperServiceInterface::class);
+        $client = Http::baseUrl($monyaHosted)
+            ->asJson()
+            ->acceptJson()
+            ->withHeader('Authorization', "Bearer {$token}");
 
         $this->info("Collecting monya voices... ({$monyaHosted}))");
 
@@ -39,7 +43,7 @@ class UpdateMonyaData extends Command
         $limit = 200;
 
         while (true) {
-            $voices = Http::get($monyaHosted.'/api/media', compact('offset', 'limit'))->collect();
+            $voices = $client->get('/api/media/empty', compact('offset', 'limit'))->collect();
 
             if ($voices->isEmpty()) {
                 break;
@@ -49,11 +53,11 @@ class UpdateMonyaData extends Command
 
             foreach ($voices as $voice) {
                 if ($voice['fileable']['text'] === null) {
-                    $urlPath = $monyaHosted.'/storage/'.$voice['file_path'];
-                    $this->info("Check {$urlPath}...");
+
+                    $this->info("Check {$voice['file_path']}...");
 
                     try {
-                        $file = Http::timeout(30)->get($urlPath);
+                        $file = $client->get('/storage/'.$voice['file_path']);
 
                         if ($file->successful()) {
                             Storage::disk('local')->put($voice['file_path'], $file->body());
@@ -61,7 +65,7 @@ class UpdateMonyaData extends Command
                             $filePath = Storage::disk('local')->path($voice['file_path']);
                             $text = $whisperService->transcribe($filePath);
 
-                            $response = Http::asJson()->put("{$monyaHosted}/api/media/{$voice['id']}/text", ['text' => $text]);
+                            $response = $client->put("/api/media/{$voice['id']}/text", ['text' => $text]);
 
                             if ($response->noContent()) {
                                 $this->info('Success!!!');
@@ -82,5 +86,10 @@ class UpdateMonyaData extends Command
             $offset += $limit;
         }
 
+        $this->info("Run UniqueMediaCommand on {$monyaHosted}");
+
+        $response = $client->post('/api/media/unique');
+
+        $this->info($response->body());
     }
 }
