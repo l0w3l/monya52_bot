@@ -74,6 +74,18 @@ services:
         volumes:
             - "${STORAGE_APP}:/var/www/html"
 
+    monya52-whisper:
+        env_file:
+            - .env
+        build: ./whisper
+        networks:
+            - backend
+        volumes:
+            - "${STORAGE_WHISPER}:/root/.cache/whisper"
+        environment:
+              WHISPER_MODEL: ${WHISPER_MODEL:-base}
+        restart: no
+
 networks:
     backend:
         driver: bridge

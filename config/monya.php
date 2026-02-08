@@ -10,4 +10,5 @@ return [
     ],
 
     'hosted_url' => env('MONYA_HOSTED_URL'),
+    'token' => env('MONYA_TOKEN'),
 ];

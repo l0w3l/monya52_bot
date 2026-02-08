@@ -3,14 +3,19 @@
 use App\Http\Controllers\Api\MediaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Lowel\Telepath\TelegramAppFactoryInterface;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix('/media')->group(function () {
+        Route::get('/', [MediaController::class, 'index']);
 
-Route::prefix('/media')->group(function () {
-    Route::get('/', [MediaController::class, 'index']);
-    Route::put('/{tg_file}/text/', [MediaController::class, 'update']);
+        Route::get('/empty/', [MediaController::class, 'empty']);
+
+        Route::post('/unique/', [MediaController::class, 'unique']);
+
+        Route::put('/{tg_file}/text/', [MediaController::class, 'update']);
+    });
 });

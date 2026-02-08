@@ -16,9 +16,9 @@ use Illuminate\Support\Facades\Storage;
 use Lowel\LaravelServiceMaker\Services\AbstractService;
 use Lowel\Telepath\Facades\SpiritBox;
 use Phptg\BotApi\FailResult;
+use Phptg\BotApi\Type\Video as TelegramVideo;
 use Phptg\BotApi\Type\VideoNote as TelegramVideoNote;
 use Phptg\BotApi\Type\Voice as TelegramVoice;
-use Phptg\BotApi\Type\Video as TelegramVideo;
 
 class FileService extends AbstractService implements FileServiceInterface
 {
@@ -86,16 +86,22 @@ class FileService extends AbstractService implements FileServiceInterface
 
     public function randomFile(): TgFile
     {
-        return TgFile::inRandomOrder()->first();
+        return TgFile::inRandomOrder()->whereHas('fileable', function (Builder $builder) {
+            $builder->whereNotNull('text');
+        })->first();
     }
 
     public function randomVideo(): TgFile
     {
-        return TgFile::where('fileable_type', Video::class)->inRandomOrder()->first();
+        return TgFile::where('fileable_type', Video::class)->whereHas('fileable', function (Builder $builder) {
+            $builder->whereNotNull('text');
+        })->inRandomOrder()->first();
     }
 
     public function randomVoice(): TgFile
     {
-        return TgFile::where('fileable_type', Voice::class)->inRandomOrder()->first();
+        return TgFile::where('fileable_type', Voice::class)->whereHas('fileable', function (Builder $builder) {
+            $builder->whereNotNull('text');
+        })->inRandomOrder()->first();
     }
 }
