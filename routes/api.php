@@ -14,7 +14,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/empty/', [MediaController::class, 'empty']);
 
-        Route::post('/media/unique/', [MediaController::class, 'unique']);
+        Route::post('/unique/', [MediaController::class, 'unique']);
 
         Route::put('/{tg_file}/text/', [MediaController::class, 'update']);
     });
