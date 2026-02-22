@@ -7,6 +7,7 @@ use App\Telegram\Handlers\Random\RandomMonyaCommand;
 use App\Telegram\Handlers\Random\RandomMonyaVideoNoteCommand;
 use App\Telegram\Handlers\Random\RandomMonyaVoiceCommand;
 use App\Telegram\Handlers\StartCommand;
+use App\Telegram\Handlers\StatCommandHandler;
 use App\Telegram\Middlewares\Private\MonyaDetectMiddleware;
 use Lowel\Telepath\Facades\Telepath;
 use Lowel\Telepath\Middlewares\Messages\Type\PrivateChatMiddleware;
@@ -22,6 +23,7 @@ Telepath::middleware(MonyaDetectMiddleware::class)
 Telepath::onCommand('random', RandomMonyaCommand::class);
 Telepath::onCommand('random_voice', RandomMonyaVoiceCommand::class);
 Telepath::onCommand('random_video', RandomMonyaVideoNoteCommand::class);
+Telepath::onCommand('stats', StatCommandHandler::class);
 
 Telepath::onInlineQuery(HandleMonyaQueryHandler::class);
 Telepath::onInlineQueryChosenResult(MonyaChosenResultHandler::class);
