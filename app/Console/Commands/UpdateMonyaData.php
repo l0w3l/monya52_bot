@@ -65,6 +65,8 @@ class UpdateMonyaData extends Command
                             $filePath = Storage::disk('local')->path($voice['file_path']);
                             $text = $whisperService->transcribe($filePath);
 
+                            $text = $this->cleanText($text);
+
                             $response = $client->put("/api/media/{$voice['id']}/text", ['text' => $text]);
 
                             if ($response->noContent()) {
@@ -91,5 +93,14 @@ class UpdateMonyaData extends Command
         $response = $client->post('/api/media/unique');
 
         $this->info($response->body());
+    }
+
+    private function cleanText($text): string
+    {
+        $text = mb_strtolower(
+            preg_replace('/\p{P}/u', '', $text)
+        );
+
+        return trim($text);
     }
 }
