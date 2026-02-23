@@ -8,6 +8,7 @@ use App\Models\Stat;
 use App\Models\TgFile;
 use App\Models\Video;
 use App\Models\Voice;
+use Illuminate\Database\Eloquent\Collection;
 use Lowel\LaravelServiceMaker\Services\AbstractService;
 
 class StatService extends AbstractService implements StatServiceInterface
@@ -30,5 +31,48 @@ class StatService extends AbstractService implements StatServiceInterface
         $stat->usages++;
 
         $stat->save();
+    }
+
+    public function all(): Collection
+    {
+        return Stat::all();
+    }
+
+    public function count(): int
+    {
+        return Stat::count();
+    }
+
+    public function voicesCount(): int
+    {
+        return Voice::count();
+    }
+
+    public function videoCount(): int
+    {
+        return Video::count();
+    }
+
+    public function transcribed(): int
+    {
+        return Video::whereNotNull('text')->count() + Voice::whereNotNull('text')->count();
+    }
+
+    public function waitingForTranscribe(): int
+    {
+        return $this->count() - $this->transcribed();
+    }
+
+    public function totalUsage(): int
+    {
+        return Stat::sum('usages');
+    }
+
+    public function top(int $limit = 5): Collection
+    {
+        return Stat::with('statable')
+            ->orderBy('usage', 'desc')
+            ->limit($limit)
+            ->get();
     }
 }
