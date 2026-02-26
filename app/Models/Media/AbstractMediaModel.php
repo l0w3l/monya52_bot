@@ -9,10 +9,11 @@ use App\Models\TgFile;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Phptg\BotApi\Type\Message;
 
 /**
  * @property int $id
- * @property \Illuminate\Support\Carbon created_at
+ * @property \Illuminate\Support\Carbon $created_at
  * @property string $text
  */
 abstract class AbstractMediaModel extends Model
@@ -29,7 +30,7 @@ abstract class AbstractMediaModel extends Model
     }
 
     /**
-     * @return MorphOne<AbstractMediaModel>
+     * @return MorphOne<TgFile, $this>
      */
     public function file(): MorphOne
     {
@@ -37,10 +38,12 @@ abstract class AbstractMediaModel extends Model
     }
 
     /**
-     * @return MorphOne<AbstractMediaModel>
+     * @return MorphOne<Stat, $this>
      */
     public function stat(): MorphOne
     {
         return $this->morphOne(Stat::class, 'statable');
     }
+
+    abstract public function send(): Message;
 }

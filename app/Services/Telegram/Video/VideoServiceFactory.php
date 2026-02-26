@@ -10,6 +10,6 @@ class VideoServiceFactory implements ServiceFactoryInterface
 {
     public function get(array $params = []): VideoServiceInterface
     {
-        return new VideoService;
+        return app()->make(VideoService::class);
     }
 }

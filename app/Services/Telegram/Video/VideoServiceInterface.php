@@ -11,5 +11,5 @@ use Phptg\BotApi\Type\VideoNote;
 
 interface VideoServiceInterface extends ServiceInterface
 {
-    public function saveVideo(VideoNote|TelegramVideo $video): Video;
+    public function createFor(VideoNote|TelegramVideo $telegramVideo): Video;
 }

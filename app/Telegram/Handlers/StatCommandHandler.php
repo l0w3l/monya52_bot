@@ -24,7 +24,8 @@ class StatCommandHandler extends AbstractTelegramHandler
             $transcribed = $statService->transcribed();
             $waitingForTrinscribe = $statService->waitingForTranscribe();
             $topFive = $statService->top(5)
-                ->map(fn (Stat $stat, int $index) => PHP_EOL.($index + 1).'. <i>'.$stat->statable->text.'</i>')
+                /** @phpstan-ignore-next-line */
+                ->map(fn (Stat $stat, int|string $index) => PHP_EOL.($index + 1).'. <i>'.$stat->statable->text.'</i>')
                 ->reduce(fn (string $acc, string $place) => $acc .= $place, '');
 
             SpiritBox::sendMessage(sprintf(

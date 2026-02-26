@@ -34,17 +34,11 @@ class NewMessageFromMonyaHandler extends AbstractTelegramHandler
 
             if ($telegramFile !== null && $fileService->doesntExists($telegramFile)) {
                 $fileable = match ($telegramFile::class) {
-                    TelegramVideoNote::class => $videoService->saveVideo($telegramFile),
-                    TelegramVoice::class => $voiceService->saveVoice($telegramFile),
+                    TelegramVideoNote::class => $videoService->createFor($telegramFile),
+                    TelegramVoice::class => $voiceService->createFor($telegramFile),
                 };
 
-                $statService->createFor($fileable);
-
-                $file = $fileService->save(
-                    $telegramFile, $fileable
-                );
-
-                Log::info("{$file->file_path} saved...");
+                Log::info("{$fileable->file->file_path} createFord...");
 
                 if (ChatTypesEnum::isPrivate($chat)) {
                     SpiritBox::setMessageReaction($chat->id, $message->messageId, [new ReactionTypeEmoji('✍')]);
