@@ -54,5 +54,8 @@ return [
             // will send report about unhandled exceptions to the given chat_id instance (chat or dm)
             'chat_id_fallback' => (int) env('TELEPATH_CHAT_ID_FALLBACK', null),
         ],
+        'clean' => [
+            'token' => env('TELEPATH_TOKEN_CLEAN'),
+        ],
     ],
 ];

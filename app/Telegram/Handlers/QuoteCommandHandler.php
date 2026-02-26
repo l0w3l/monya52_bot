@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Lowel\Telepath\Core\Router\Handler\AbstractTelegramHandler;
 use Lowel\Telepath\Facades\Extrasense;
 use Lowel\Telepath\Facades\SpiritBox;
+use Phptg\BotApi\Type\ReactionTypeEmoji;
 
 class QuoteCommandHandler extends AbstractTelegramHandler
 {
@@ -19,12 +20,8 @@ class QuoteCommandHandler extends AbstractTelegramHandler
         ) {
             $replyToMessage = Extrasense::message()->replyToMessage;
 
-            if ($replyToMessage === null) {
-                return;
-            }
-
-            if ($replyToMessage->text === null && $replyToMessage->photo === null) {
-                SpiritBox::replyMessage('Поддерживаются только текстовые сообщения и изображения.');
+            if ($replyToMessage === null || $replyToMessage->text === null) {
+                SpiritBox::setMessageReaction(Extrasense::chat()->id, Extrasense::message()->messageId, [new ReactionTypeEmoji('👎')]);
 
                 return;
             }

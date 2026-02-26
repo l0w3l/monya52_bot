@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use Lowel\LaravelServiceMaker\Services\AbstractService;
 use Lowel\Telepath\Facades\SpiritBox;
 use Phptg\BotApi\FailResult;
+use Phptg\BotApi\TelegramBotApi;
 use Phptg\BotApi\Type\Chat;
 use Phptg\BotApi\Type\Message;
 use Phptg\BotApi\Type\MessageOrigin;
@@ -48,9 +49,9 @@ class QuoteApiService extends AbstractService implements QuoteApiServiceInterfac
                         'from' => $from,
                         'text' => $message->text ?? $message->caption,
                         'avatar' => true,
-                        'media' => [
-                            'url' => (empty($message->photo)) ? null : $this->resolveFileToUrl($message->photo[1]),
-                        ],
+                        //                        'media' => [
+                        //                            'url' => (empty($message->photo)) ? null : $this->resolveFileToUrl($message->photo[0]),
+                        //                        ],
                     ],
                 ],
             ]);
@@ -106,7 +107,20 @@ class QuoteApiService extends AbstractService implements QuoteApiServiceInterfac
         $photos = SpiritBox::getUserProfilePhotos($from->id);
 
         if ($photos instanceof FailResult || empty($photos->photos)) {
-            return [];
+            if (config('telepath.profiles.clean.token') === null) {
+                return [];
+            }
+
+            $cleanClient = new TelegramBotApi(config('telepath.profiles.clean.token'));
+            $photos = $cleanClient->getUserProfilePhotos($from->id);
+
+            if ($photos instanceof FailResult || empty($photos->photos)) {
+                return [];
+            } else {
+                return [
+                    'url' => $cleanClient->makeFileUrl($cleanClient->getFile($photos->photos[0][1]->fileId)),
+                ];
+            }
         } else {
             return [
                 'url' => $this->resolveFileToUrl($photos->photos[0][1]),
