@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Telegram\Handlers;
 
 use App\Services\Telegram\File\FileServiceInterface;
-use App\Services\Telegram\Stat\StatServiceInterface;
+use App\Services\Telegram\Quote\QuoteServiceInterface;
 use App\Services\Telegram\Video\VideoServiceInterface;
 use App\Services\Telegram\Voice\VoiceServiceInterface;
 use Illuminate\Support\Facades\Log;
@@ -28,7 +28,7 @@ class NewMessageFromMonyaHandler extends AbstractTelegramHandler
             VoiceServiceInterface $voiceService,
             VideoServiceInterface $videoService,
             FileServiceInterface $fileService,
-            StatServiceInterface $statService
+            QuoteServiceInterface $quoteService
         ) {
             $telegramFile = $message->voice ?? $message->videoNote;
 
@@ -45,6 +45,14 @@ class NewMessageFromMonyaHandler extends AbstractTelegramHandler
                 }
             } else {
                 Log::info('Voice already exists or not found, skipping...');
+            }
+
+            if (ChatTypesEnum::isPrivate($chat)) {
+                if ($message->text !== null) {
+                    if (! $quoteService->exists($message)) {
+                        $quoteService->createFor($message);
+                    }
+                }
             }
         };
     }
