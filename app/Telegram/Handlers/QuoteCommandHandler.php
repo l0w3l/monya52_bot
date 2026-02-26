@@ -20,7 +20,7 @@ class QuoteCommandHandler extends AbstractTelegramHandler
         ) {
             $replyToMessage = Extrasense::message()->replyToMessage;
 
-            if ($replyToMessage === null || $replyToMessage->text === null) {
+            if ($replyToMessage === null || ($replyToMessage->text === null && $replyToMessage->caption === null)) {
                 SpiritBox::setMessageReaction(Extrasense::chat()->id, Extrasense::message()->messageId, [new ReactionTypeEmoji('👎')]);
 
                 return;

@@ -45,7 +45,7 @@ class QuoteService extends AbstractService implements QuoteServiceInterface
     {
         return Quote::where('message_id', $message->messageId)
             ->where('chat_id', $message->chat->id)
-            ->where('text', $message->text)
+            ->orWhere('text', $message->text)
             ->firstOrFail();
     }
 
@@ -53,6 +53,7 @@ class QuoteService extends AbstractService implements QuoteServiceInterface
     {
         return Quote::where('message_id', $message->messageId)
             ->where('chat_id', $message->chat->id)
+            ->orWhere('text', $message->text)
             ->exists();
     }
 }
