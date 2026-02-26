@@ -27,7 +27,7 @@ class Voice extends AbstractMediaModel
     {
         app()->make(StatServiceInterface::class)->incUsageFor($this);
 
-        $message = SpiritBox::sendVoice(voice: $this->file->file_id, caption: substr($this->file->fileable->text, 0, 1024), replyMarkup: (new StatInlineKeyboardFactory)->make()->build(['stat' => $this->stat]));
+        $message = SpiritBox::sendVoice(voice: $this->file->file_id, caption: '<blockquote expandable>'.substr($this->file->fileable->text, 0, 1024).'</blockquote>', replyMarkup: (new StatInlineKeyboardFactory)->make()->build(['stat' => $this->stat]));
 
         if ($message instanceof FailResult) {
             throw new RuntimeException('Error while send voice\n\n'.$this->toJson(JSON_PRETTY_PRINT));
