@@ -12,8 +12,8 @@ use App\Telegram\Handlers\StartCommand;
 use App\Telegram\Handlers\StatCommandHandler;
 use App\Telegram\Keyboards\Inline\Stat\StatInlineKeyboardFactory;
 use App\Telegram\Middlewares\Private\MonyaDetectMiddleware;
+use App\Telegram\Middlewares\Private\ReplyToMonyaMiddleware;
 use Lowel\Telepath\Facades\Telepath;
-use Lowel\Telepath\Middlewares\Messages\OnlyForUsersMiddleware;
 use Lowel\Telepath\Middlewares\Messages\Type\PrivateChatMiddleware;
 
 Telepath::middleware(PrivateChatMiddleware::class)
@@ -33,7 +33,7 @@ Telepath::onCommand('stats', StatCommandHandler::class);
 Telepath::onInlineQuery(HandleMonyaQueryHandler::class);
 Telepath::onInlineQueryChosenResult(MonyaChosenResultHandler::class);
 
-Telepath::middleware(OnlyForUsersMiddleware::class)->group(function () {
+Telepath::middleware(ReplyToMonyaMiddleware::class)->group(function () {
     Telepath::onCommand('quote', QuoteCommandHandler::class);
 });
 
