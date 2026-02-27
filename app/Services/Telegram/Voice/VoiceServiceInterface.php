@@ -10,5 +10,5 @@ use Phptg\BotApi\Type\Voice as TelegramVoice;
 
 interface VoiceServiceInterface extends ServiceInterface
 {
-    public function saveVoice(TelegramVoice $voice): Voice;
+    public function createFor(TelegramVoice $telegramVoice): Voice;
 }

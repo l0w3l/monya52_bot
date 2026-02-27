@@ -20,10 +20,11 @@ class TgFile extends Model
     ];
 
     /**
-     * @return MorphTo<AbstractMediaModel>
+     * @phpstan-return MorphTo<AbstractMediaModel, $this>
      */
     public function fileable(): MorphTo
     {
+        /** @var MorphTo<AbstractMediaModel, $this> */
         return $this->morphTo();
     }
 

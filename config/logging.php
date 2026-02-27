@@ -105,6 +105,15 @@ return [
             'processors' => [PsrLogMessageProcessor::class],
         ],
 
+        'stdout_pretty' => [
+            'driver' => 'monolog',
+            'handler' => Monolog\Handler\StreamHandler::class,
+            'with' => [
+                'stream' => 'php://stdout',
+            ],
+            'formatter' => App\Logging\PrettyJsonFormatter::class,
+        ],
+
         'syslog' => [
             'driver' => 'syslog',
             'level' => env('LOG_LEVEL', 'debug'),

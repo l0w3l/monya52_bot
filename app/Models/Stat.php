@@ -16,11 +16,18 @@ class Stat extends Model
         'dislikes',
     ];
 
+    protected $attributes = [
+        'likes' => 0,
+        'dislikes' => 0,
+        'usages' => 0,
+    ];
+
     /**
-     * @return MorphTo<AbstractMediaModel>
+     * @phpstan-return MorphTo<AbstractMediaModel, $this>
      */
     public function statable(): MorphTo
     {
+        /** @var MorphTo<AbstractMediaModel, $this> */
         return $this->morphTo();
     }
 }

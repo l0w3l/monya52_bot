@@ -8,17 +8,17 @@ use Illuminate\Support\Facades\Log;
 use Lowel\Telepath\Core\Router\Middleware\AbstractTelegramMiddleware;
 use Lowel\Telepath\Exceptions\UpdateNotFoundInCurrentContextException;
 use Lowel\Telepath\Exceptions\UserNotFoundInCurrentContextException;
-use Lowel\Telepath\Facades\Extrasense;
+use Phptg\BotApi\Type\Message;
 use Phptg\BotApi\Type\MessageOriginUser;
+use Phptg\BotApi\Type\User;
 
 class MonyaDetectMiddleware extends AbstractTelegramMiddleware
 {
     public function handler(): callable
     {
-        return static function (callable $next) {
+        return static function (Message $message, User $user, callable $next) {
             try {
-                $forward = Extrasense::message()->forwardOrigin;
-                $user = Extrasense::user();
+                $forward = $message->forwardOrigin;
                 $chatId = config('monya.chat_id');
 
                 if ($chatId === 0) {

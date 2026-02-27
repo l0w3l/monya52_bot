@@ -65,6 +65,21 @@ services:
         volumes:
             - "${STORAGE_APP}:/var/www/html"
 
+    monya52-quote-api:
+        build: ./quote-api/
+        environment:
+        - NODE_ENV=production
+        - "BOT_TOKEN=${QUOTE_API_TOKEN}"
+        restart: unless-stopped
+        ports:
+            - "3000:3000"
+        networks:
+        - backend
+        deploy:
+        resources:
+            limits:
+            memory: 1G
+
 networks:
     backend:
         driver: bridge

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Telegram\Stat;
 
+use App\Models\Media\AbstractMediaModel;
 use App\Models\Stat;
 use App\Models\TgFile;
 use App\Models\Video;
@@ -13,7 +14,7 @@ use Lowel\LaravelServiceMaker\Services\AbstractService;
 
 class StatService extends AbstractService implements StatServiceInterface
 {
-    public function createFor(Voice|Video $media): Stat
+    public function createFor(AbstractMediaModel $media): Stat
     {
         return Stat::create([
             'statable_id' => $media->id,
@@ -31,6 +32,11 @@ class StatService extends AbstractService implements StatServiceInterface
         $stat->usages++;
 
         $stat->save();
+    }
+
+    public function incUsageFor(AbstractMediaModel $media): void
+    {
+        $media->stat->increment('usages');
     }
 
     public function all(): Collection
@@ -74,5 +80,34 @@ class StatService extends AbstractService implements StatServiceInterface
             ->orderBy('usage', 'desc')
             ->limit($limit)
             ->get();
+    }
+
+    public function find(int $id): Stat
+    {
+        return Stat::find($id);
+    }
+
+    public function like(Stat $stat): void
+    {
+        $stat->likes++;
+        $stat->save();
+    }
+
+    public function dislike(Stat $stat): void
+    {
+        $stat->dislikes++;
+        $stat->save();
+    }
+
+    public function likeFor(int $statId): void
+    {
+        $stat = $this->find($statId);
+        $this->like($stat);
+    }
+
+    public function dislikeFor(int $statId): void
+    {
+        $stat = $this->find($statId);
+        $this->dislike($stat);
     }
 }

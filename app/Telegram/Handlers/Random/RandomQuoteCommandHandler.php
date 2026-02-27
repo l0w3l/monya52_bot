@@ -7,12 +7,12 @@ namespace App\Telegram\Handlers\Random;
 use App\Services\Telegram\File\FileServiceInterface;
 use Lowel\Telepath\Core\Router\Handler\AbstractTelegramHandler;
 
-class RandomMonyaCommand extends AbstractTelegramHandler
+class RandomQuoteCommandHandler extends AbstractTelegramHandler
 {
     public function handler(): callable
     {
         return static function (FileServiceInterface $fileService) {
-            $fileService->randomFile()->fileable->send();
+            $fileService->randomQuote()->fileable->send();
         };
     }
 }

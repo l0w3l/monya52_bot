@@ -6,6 +6,7 @@ namespace App\Services\Telegram\File;
 
 use App\Exceptions\Services\Telegram\File\CannotDownloadFileFromTelegramException;
 use App\Models\Media\AbstractMediaModel;
+use App\Models\Quote;
 use App\Models\TgFile;
 use App\Models\Video;
 use App\Models\Voice;
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\Storage;
 use Lowel\LaravelServiceMaker\Services\AbstractService;
 use Lowel\Telepath\Facades\SpiritBox;
 use Phptg\BotApi\FailResult;
+use Phptg\BotApi\Type\PhotoSize as TelegramPhoto;
+use Phptg\BotApi\Type\Sticker\Sticker;
 use Phptg\BotApi\Type\Video as TelegramVideo;
 use Phptg\BotApi\Type\VideoNote as TelegramVideoNote;
 use Phptg\BotApi\Type\Voice as TelegramVoice;
@@ -25,7 +28,7 @@ class FileService extends AbstractService implements FileServiceInterface
     public function __construct(
     ) {}
 
-    public function save(TelegramVoice|TelegramVideo|TelegramVideoNote $telegramFile, AbstractMediaModel $fileable): TgFile
+    public function createFor(TelegramVoice|TelegramVideo|TelegramVideoNote|TelegramPhoto|Sticker $telegramFile, AbstractMediaModel $fileable): TgFile
     {
         $file = SpiritBox::getFile($telegramFile->fileId);
         if ($file instanceof FailResult) {
@@ -103,5 +106,10 @@ class FileService extends AbstractService implements FileServiceInterface
         return TgFile::where('fileable_type', Voice::class)->whereHas('fileable', function (Builder $builder) {
             $builder->whereNotNull('text');
         })->inRandomOrder()->first();
+    }
+
+    public function randomQuote(): TgFile
+    {
+        return TgFile::where('fileable_type', Quote::class)->inRandomOrder()->first();
     }
 }

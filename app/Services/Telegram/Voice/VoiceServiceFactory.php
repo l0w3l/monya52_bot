@@ -10,6 +10,6 @@ class VoiceServiceFactory implements ServiceFactoryInterface
 {
     public function get(array $params = []): VoiceServiceInterface
     {
-        return new VoiceService;
+        return app()->make(VoiceService::class);
     }
 }

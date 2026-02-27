@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Telegram\Handlers\Inline;
 
+use App\Models\Quote;
 use App\Models\Video;
 use App\Models\Voice;
 use App\Services\Telegram\File\FileServiceInterface;
 use Lowel\Telepath\Core\Router\Handler\AbstractTelegramHandler;
 use Lowel\Telepath\Facades\SpiritBox;
+use Phptg\BotApi\Type\Inline\InlineQueryResultCachedSticker;
 use Phptg\BotApi\Type\Inline\InlineQueryResultCachedVideo;
 use Phptg\BotApi\Type\Inline\InlineQueryResultCachedVoice;
 use Phptg\BotApi\Type\Update\Update;
@@ -37,6 +39,12 @@ class HandleMonyaQueryHandler extends AbstractTelegramHandler
                         (string) $file->id,
                         $file->file_id,
                         $file->fileable->prettyText(),
+                    );
+                } elseif ($file->fileable instanceof Quote) {
+                    $inlineQueryResultVoices[] = new InlineQueryResultCachedSticker(
+                        (string) $file->id,
+                        $file->file_id,
+
                     );
                 }
             }

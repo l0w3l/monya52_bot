@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Telegram\Handlers;
 
 use App\Services\Telegram\File\FileServiceInterface;
-use App\Services\Telegram\Stat\StatServiceInterface;
+use App\Services\Telegram\Quote\QuoteServiceInterface;
 use App\Services\Telegram\Video\VideoServiceInterface;
 use App\Services\Telegram\Voice\VoiceServiceInterface;
 use Illuminate\Support\Facades\Log;
@@ -28,29 +28,31 @@ class NewMessageFromMonyaHandler extends AbstractTelegramHandler
             VoiceServiceInterface $voiceService,
             VideoServiceInterface $videoService,
             FileServiceInterface $fileService,
-            StatServiceInterface $statService
+            QuoteServiceInterface $quoteService
         ) {
             $telegramFile = $message->voice ?? $message->videoNote;
 
             if ($telegramFile !== null && $fileService->doesntExists($telegramFile)) {
                 $fileable = match ($telegramFile::class) {
-                    TelegramVideoNote::class => $videoService->saveVideo($telegramFile),
-                    TelegramVoice::class => $voiceService->saveVoice($telegramFile),
+                    TelegramVideoNote::class => $videoService->createFor($telegramFile),
+                    TelegramVoice::class => $voiceService->createFor($telegramFile),
                 };
 
-                $statService->createFor($fileable);
-
-                $file = $fileService->save(
-                    $telegramFile, $fileable
-                );
-
-                Log::info("{$file->file_path} saved...");
+                Log::info("{$fileable->file->file_path} createFord...");
 
                 if (ChatTypesEnum::isPrivate($chat)) {
                     SpiritBox::setMessageReaction($chat->id, $message->messageId, [new ReactionTypeEmoji('✍')]);
                 }
             } else {
                 Log::info('Voice already exists or not found, skipping...');
+            }
+
+            if (ChatTypesEnum::isPrivate($chat)) {
+                if ($message->text !== null || $message->caption !== null) {
+                    if (! $quoteService->exists($message)) {
+                        $quoteService->createFor($message);
+                    }
+                }
             }
         };
     }
