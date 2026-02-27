@@ -41,11 +41,16 @@ class LikeButton extends AbstractCallbackButton
         };
     }
 
+    public function iconCustomEmojiId(array $args = []): ?string
+    {
+        return '5249071573314319343';
+    }
+
     public function text(array $args = []): int|string|callable
     {
         $stat = $args['stat'];
 
-        return "👍 ({$stat->likes})";
+        return "({$stat->likes})";
     }
 
     public function callbackData(array $args = []): int|string|callable

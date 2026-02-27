@@ -41,11 +41,16 @@ class DislikeButton extends AbstractCallbackButton
         };
     }
 
+    public function iconCustomEmojiId(array $args = []): ?string
+    {
+        return '5427257182171202830';
+    }
+
     public function text(array $args = []): int|string|callable
     {
         $stat = $args['stat'];
 
-        return "👎 ({$stat->dislikes})";
+        return "({$stat->dislikes})";
     }
 
     public function callbackData(array $args = []): int|string|callable

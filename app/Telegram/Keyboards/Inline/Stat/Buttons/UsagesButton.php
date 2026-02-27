@@ -29,7 +29,7 @@ class UsagesButton extends AbstractSwitchInlineQueryButton
     {
         $stat = $args['stat'];
 
-        return "👁️ ({$stat->usages})";
+        return "🧿 ({$stat->usages})";
     }
 
     public function callbackData(array $args = []): int|string|callable
