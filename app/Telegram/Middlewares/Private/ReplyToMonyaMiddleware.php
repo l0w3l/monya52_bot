@@ -16,7 +16,7 @@ class ReplyToMonyaMiddleware extends AbstractTelegramMiddleware
             $replyToMessage = $message->replyToMessage;
 
             if ($replyToMessage !== null) {
-                (new MonyaDetectMiddleware)->handler()($replyToMessage, $user, $next);
+                (new MonyaDetectMiddleware)->handler()($replyToMessage, $replyToMessage->from, $next);
             }
         };
     }

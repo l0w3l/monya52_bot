@@ -48,7 +48,7 @@ class NewMessageFromMonyaHandler extends AbstractTelegramHandler
             }
 
             if (ChatTypesEnum::isPrivate($chat)) {
-                if ($message->text !== null) {
+                if ($message->text !== null || $message->caption !== null) {
                     if (! $quoteService->exists($message)) {
                         $quoteService->createFor($message);
                     }
