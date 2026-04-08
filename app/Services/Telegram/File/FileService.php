@@ -8,11 +8,13 @@ use App\Exceptions\Services\Telegram\File\CannotDownloadFileFromTelegramExceptio
 use App\Models\Media\AbstractMediaModel;
 use App\Models\Quote;
 use App\Models\TgFile;
+use App\Models\User;
 use App\Models\Video;
 use App\Models\Voice;
 use DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Lowel\LaravelServiceMaker\Services\AbstractService;
 use Lowel\Telepath\Facades\SpiritBox;
@@ -64,12 +66,17 @@ class FileService extends AbstractService implements FileServiceInterface
     public function fullTextMatch(string $data, int $offset = 0, int $limit = 10): Collection
     {
         $words = collect(explode(' ', $data))
-            ->map(fn($word) => trim(mb_strtolower($word)))
-            ->filter(fn($word) => mb_strlen($word) > 1)
+            ->map(fn ($word) => trim(mb_strtolower($word)))
+            ->filter(fn ($word) => mb_strlen($word) > 1)
             ->values();
+
         if ($words->isEmpty()) {
-            return new Collection();
+            /** @var User */
+            $user = Auth::guard('telegram')->user();
+
+            return $user->tgFiles()->latest()->offset($offset)->limit($limit)->get();
         }
+
         return TgFile::with('fileable.stat')
             ->whereHas('fileable', function (Builder $query) use ($words) {
                 $query->where(function (Builder $q) use ($words) {
@@ -97,7 +104,6 @@ class FileService extends AbstractService implements FileServiceInterface
             ->limit($limit)
             ->get();
     }
-
 
     public function randomFile(): TgFile
     {
@@ -134,15 +140,17 @@ class FileService extends AbstractService implements FileServiceInterface
             CASE tg_files.fileable_type
                 WHEN 'App\\\\Models\\\\Video' THEN (SELECT LOWER(text) FROM videos WHERE id = tg_files.fileable_id)
                 WHEN 'App\\\\Models\\\\Voice' THEN (SELECT LOWER(text) FROM voices WHERE id = tg_files.fileable_id)
-                WHEN 'App\\\\Models\\\\Quote' THEN (SELECT LOWER(text) FROM quotes WHERE id = tg_files.fileable_id)
                 ELSE ''
             END";
+
         // Ранжирование: точная фраза дает 10 баллов, каждое слово по 1 баллу
         $relevanceSql = "(($textSql LIKE '%{$fullPhrase}%') * 10)";
+
         foreach ($words as $word) {
             $safeWord = str_replace("'", "''", $word);
             $relevanceSql .= " + ($textSql LIKE '%{$safeWord}%')";
         }
+
         return "($relevanceSql) DESC";
     }
 }

@@ -10,6 +10,28 @@ use Phptg\BotApi\FailResult;
 use Phptg\BotApi\Type\Message;
 use RuntimeException;
 
+/**
+ * @property int $id
+ * @property int $duration
+ * @property string|null $mime_type
+ * @property string|null $text
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\TgFile|null $file
+ * @property-read \App\Models\Stat|null $stat
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Voice newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Voice newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Voice query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Voice whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Voice whereDuration($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Voice whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Voice whereMimeType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Voice whereText($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Voice whereUpdatedAt($value)
+ *
+ * @mixin \Eloquent
+ */
 class Voice extends AbstractMediaModel
 {
     protected $fillable = [

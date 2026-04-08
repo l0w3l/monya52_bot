@@ -10,6 +10,28 @@ use Phptg\BotApi\FailResult;
 use Phptg\BotApi\Type\Message;
 use RuntimeException;
 
+/**
+ * @property int $id
+ * @property string $text
+ * @property int $message_id
+ * @property int $chat_id
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\TgFile|null $file
+ * @property-read \App\Models\Stat|null $stat
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Quote newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Quote newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Quote query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Quote whereChatId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Quote whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Quote whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Quote whereMessageId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Quote whereText($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Quote whereUpdatedAt($value)
+ *
+ * @mixin \Eloquent
+ */
 class Quote extends AbstractMediaModel
 {
     protected $fillable = ['text', 'message_id', 'chat_id'];
