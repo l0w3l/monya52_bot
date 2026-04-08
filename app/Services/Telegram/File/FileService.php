@@ -25,8 +25,7 @@ use Phptg\BotApi\Type\Voice as TelegramVoice;
 
 class FileService extends AbstractService implements FileServiceInterface
 {
-    public function __construct(
-    ) {}
+    public function __construct() {}
 
     public function createFor(TelegramVoice|TelegramVideo|TelegramVideoNote|TelegramPhoto|Sticker $telegramFile, AbstractMediaModel $fileable): TgFile
     {
@@ -64,10 +63,22 @@ class FileService extends AbstractService implements FileServiceInterface
 
     public function fullTextMatch(string $data, int $offset = 0, int $limit = 10): Collection
     {
+        $words = collect(explode(' ', $data))
+            ->map(fn($word) => trim(mb_strtolower($word)))
+            ->filter(fn($word) => mb_strlen($word) > 1)
+            ->values();
+        if ($words->isEmpty()) {
+            return new Collection();
+        }
         return TgFile::with('fileable.stat')
-            ->whereHas('fileable', function (Builder $query) use ($data) {
-                $query->whereLike('text', "%{$data}%");
+            ->whereHas('fileable', function (Builder $query) use ($words) {
+                $query->where(function (Builder $q) use ($words) {
+                    foreach ($words as $word) {
+                        $q->orWhere('text', 'like', "%{$word}%");
+                    }
+                });
             })
+            ->orderByRaw($this->getRelevanceOrder($words))
             ->orderByRaw('
                     CASE
                         WHEN tg_files.created_at >= ? THEN 0
@@ -86,6 +97,7 @@ class FileService extends AbstractService implements FileServiceInterface
             ->limit($limit)
             ->get();
     }
+
 
     public function randomFile(): TgFile
     {
@@ -111,5 +123,26 @@ class FileService extends AbstractService implements FileServiceInterface
     public function randomQuote(): TgFile
     {
         return TgFile::where('fileable_type', Quote::class)->inRandomOrder()->first();
+    }
+
+    private function getRelevanceOrder(\Illuminate\Support\Collection $words): string
+    {
+        $fullPhrase = str_replace("'", "''", mb_strtolower($words->implode(' ')));
+
+        // Получаем текст в зависимости от типа модели
+        $textSql = "
+            CASE tg_files.fileable_type
+                WHEN 'App\\\\Models\\\\Video' THEN (SELECT LOWER(text) FROM videos WHERE id = tg_files.fileable_id)
+                WHEN 'App\\\\Models\\\\Voice' THEN (SELECT LOWER(text) FROM voices WHERE id = tg_files.fileable_id)
+                WHEN 'App\\\\Models\\\\Quote' THEN (SELECT LOWER(text) FROM quotes WHERE id = tg_files.fileable_id)
+                ELSE ''
+            END";
+        // Ранжирование: точная фраза дает 10 баллов, каждое слово по 1 баллу
+        $relevanceSql = "(($textSql LIKE '%{$fullPhrase}%') * 10)";
+        foreach ($words as $word) {
+            $safeWord = str_replace("'", "''", $word);
+            $relevanceSql .= " + ($textSql LIKE '%{$safeWord}%')";
+        }
+        return "($relevanceSql) DESC";
     }
 }
