@@ -39,25 +39,22 @@ class UpdateMonyaData extends Command
 
         $this->info("Collecting monya voices... ({$monyaHosted}))");
 
-        $offset = 0;
-        $limit = 200;
+        $limit = 1000;
 
         while (true) {
-            $voices = $client->get('/api/media/empty', compact('offset', 'limit'))->collect();
+            $voices = $client->get('/api/media/empty', compact('limit'))->collect();
 
             if ($voices->isEmpty()) {
                 break;
             }
 
-            $this->info("{$offset}-".$offset + $limit.'...');
-
             foreach ($voices as $voice) {
                 if ($voice['fileable']['text'] === null) {
 
-                    $this->info("Check {$voice['file_path']}...");
+                    $this->alert("Check {$voice['file_path']}...");
 
                     try {
-                        $file = $client->get('/storage/'.$voice['file_path']);
+                        $file = $client->get('/storage/' . $voice['file_path']);
 
                         if ($file->successful()) {
                             Storage::disk('local')->put($voice['file_path'], $file->body());
@@ -66,6 +63,8 @@ class UpdateMonyaData extends Command
                             $text = $whisperService->transcribe($filePath);
 
                             $text = $this->cleanText($text);
+
+                            $this->info($text);
 
                             $response = $client->put("/api/media/{$voice['id']}/text", ['text' => $text]);
 
@@ -77,7 +76,6 @@ class UpdateMonyaData extends Command
                         } else {
                             $this->error('File downloading failure!!!');
                         }
-
                     } catch (Throwable $e) {
                         dump($e);
                         $this->error('File not found on the server!!!');
@@ -85,7 +83,7 @@ class UpdateMonyaData extends Command
                 }
             }
 
-            $offset += $limit;
+            return;
         }
 
         $this->info("Run UniqueMediaCommand on {$monyaHosted}");
