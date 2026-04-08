@@ -12,14 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('email');
+            $table->dropColumn('name');
+            $table->dropColumn('password');
+
             $table->bigInteger('telegram_id');
             $table->string('first_name');
             $table->string('last_name')->nullable();
             $table->string('username')->nullable();
             $table->boolean('is_bot');
-            $table->string('name')->nullable()->change();
-            $table->string('email')->nullable()->change();
-            $table->string('password')->nullable()->change();
+
             $table->string('language_code')->default('en');
         });
     }
