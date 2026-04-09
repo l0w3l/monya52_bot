@@ -66,26 +66,58 @@ class FileService extends AbstractService implements FileServiceInterface
     public function fullTextMatch(string $data, int $offset = 0, int $limit = 10): Collection
     {
         $words = collect(explode(' ', $data))
-            ->map(fn($word) => trim(mb_strtolower($word)))
-            ->filter(fn($word) => mb_strlen($word) > 1)
+            ->map(fn ($word) => trim(mb_strtolower($word)))
+            ->filter(fn ($word) => mb_strlen($word) > 1)
             ->values();
 
         if ($words->isEmpty()) {
             /** @var User */
             $user = Auth::guard('telegram')->user();
 
-            return $user->tgFiles()->latest()->offset($offset)->limit($limit)->get();
+            $historyQuery = $user->tgFiles()->latest();
+            $historyCount = (clone $historyQuery)->count();
+
+            $results = new Collection;
+
+            if ($offset < $historyCount) {
+                $results = $historyQuery->offset($offset)->limit($limit)->get();
+            }
+
+            $remainingLimit = $limit - $results->count();
+
+            if ($remainingLimit > 0) {
+                $globalOffset = max(0, $offset - $historyCount);
+                $historyIds = $user->tgFiles()->pluck('tg_files.id');
+
+                $globalFiles = TgFile::with('fileable.stat')
+                    ->whereHas('fileable', function (Builder $builder) {
+                        $builder->whereNotNull('text');
+                    })
+                    ->whereNotIn('id', $historyIds)
+                    ->latest()
+                    ->offset($globalOffset)
+                    ->limit($remainingLimit)
+                    ->get();
+
+                $results = $results->merge($globalFiles);
+            }
+
+            return $results;
         }
 
         return TgFile::with('fileable.stat')
-            ->whereHas('fileable', function (Builder $query) use ($words) {
-                $query->where(function (Builder $q) use ($words) {
-                    foreach ($words as $word) {
-                        $q->orWhere('text', 'like', "%{$word}%");
-                    }
+            ->where(function (Builder $query) use ($words, $data) {
+                $query->whereHas('fileable', function (Builder $q) use ($words) {
+                    $q->where(function (Builder $inner) use ($words) {
+                        foreach ($words as $word) {
+                            $inner->orWhere('text', 'like', "%{$word}%");
+                        }
+                    });
+                })->orWhereHas('fileable', function (Builder $q) use ($data) {
+                    $q->whereRaw('SIMILARITY(text, ?) > 30', [$data]);
                 });
             })
-            ->orderByRaw($this->getRelevanceOrder($words))
+            ->orderByRaw($this->getRelevanceOrder($data, $words))
             ->orderByRaw('
                     CASE
                         WHEN tg_files.created_at >= ? THEN 0
@@ -131,9 +163,9 @@ class FileService extends AbstractService implements FileServiceInterface
         return TgFile::where('fileable_type', Quote::class)->inRandomOrder()->first();
     }
 
-    private function getRelevanceOrder(\Illuminate\Support\Collection $words): string
+    private function getRelevanceOrder(string $data, \Illuminate\Support\Collection $words): string
     {
-        $fullPhrase = str_replace("'", "''", mb_strtolower($words->implode(' ')));
+        $safeData = str_replace("'", "''", mb_strtolower($data));
 
         // Получаем текст в зависимости от типа модели
         $textSql = "
@@ -144,12 +176,12 @@ class FileService extends AbstractService implements FileServiceInterface
                 ELSE ''
             END";
 
-        // Ранжирование: точная фраза дает 10 баллов, каждое слово по 1 баллу
-        $relevanceSql = "(($textSql LIKE '%{$fullPhrase}%') * 10)";
+        // Ранжирование по схожести всей фразы + баллы за каждое слово
+        $relevanceSql = "SIMILARITY($textSql, '{$safeData}')";
 
         foreach ($words as $word) {
             $safeWord = str_replace("'", "''", $word);
-            $relevanceSql .= " + ($textSql LIKE '%{$safeWord}%')";
+            $relevanceSql .= " + (($textSql LIKE '%{$safeWord}%') * 5)";
         }
 
         return "($relevanceSql) DESC";

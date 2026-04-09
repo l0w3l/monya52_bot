@@ -27,5 +27,16 @@ class AppServiceProvider extends ServiceProvider
                 $app['request']
             );
         });
+
+        if (\Illuminate\Support\Facades\DB::connection() instanceof \Illuminate\Database\SQLiteConnection) {
+            \Illuminate\Support\Facades\DB::connection()->getPdo()->sqliteCreateFunction('SIMILARITY', function ($a, $b) {
+                if (empty($a) || empty($b)) {
+                    return 0;
+                }
+                similar_text(mb_strtolower((string) $a), mb_strtolower((string) $b), $percent);
+
+                return $percent;
+            }, 2);
+        }
     }
 }
