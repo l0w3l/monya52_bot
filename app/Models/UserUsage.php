@@ -9,7 +9,7 @@ class UserUsage extends Model
 {
     protected $fillable = [
         'user_id',
-        'file_id',
+        'tg_file_id',
     ];
 
     public function user(): BelongsTo
@@ -19,6 +19,6 @@ class UserUsage extends Model
 
     public function tgFile(): BelongsTo
     {
-        return $this->belongsTo(TgFile::class, 'file_id');
+        return $this->belongsTo(TgFile::class, 'tg_file_id');
     }
 }

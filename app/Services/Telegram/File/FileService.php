@@ -66,8 +66,8 @@ class FileService extends AbstractService implements FileServiceInterface
     public function fullTextMatch(string $data, int $offset = 0, int $limit = 10): Collection
     {
         $words = collect(explode(' ', $data))
-            ->map(fn ($word) => trim(mb_strtolower($word)))
-            ->filter(fn ($word) => mb_strlen($word) > 1)
+            ->map(fn($word) => trim(mb_strtolower($word)))
+            ->filter(fn($word) => mb_strlen($word) > 1)
             ->values();
 
         if ($words->isEmpty()) {

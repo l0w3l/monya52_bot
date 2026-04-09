@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Media\AbstractMediaModel;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\Storage;
 
@@ -60,14 +61,24 @@ class TgFile extends Model
     public function storagePath(): Attribute
     {
         return Attribute::make(
-            get: fn() => Storage::disk('public')->path($this->file_path),
+            get: fn () => Storage::disk('public')->path($this->file_path),
         );
     }
 
     public function url(): Attribute
     {
         return Attribute::make(
-            get: fn() => Storage::disk('public')->url($this->file_path),
+            get: fn () => Storage::disk('public')->url($this->file_path),
+        );
+    }
+
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            UserUsage::class,
+            'tg_file_id',
+            'user_id'
         );
     }
 }

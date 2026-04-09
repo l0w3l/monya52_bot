@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Telegram\Handlers\Inline;
 
+use App\Models\TgFile;
 use App\Models\User;
 use App\Services\Telegram\Stat\StatServiceInterface;
 use Illuminate\Support\Facades\Auth;
@@ -20,12 +21,12 @@ class MonyaChosenResultHandler extends AbstractTelegramHandler
         $user = Auth::guard('telegram')->user();
         $fileId = (int) $update->chosenInlineResult->resultId;
 
-        if ($user->tgFiles()->where('file_id', $fileId)->doesntExist()) {
-            $user->tgFiles()->create([
-                'file_id' => $fileId,
-            ]);
-        }
+        $file = TgFile::find($fileId);
 
-        $statService->incUsageByFileId($fileId);
+        if ($file) {
+            $file->users()->attach($user);
+
+            $statService->incUsageByFileId($fileId);
+        }
     }
 }

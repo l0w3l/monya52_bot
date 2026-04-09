@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('file_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('tg_file_id')->constrained()->cascadeOnDelete();
 
             $table->timestamps();
         });
