@@ -107,14 +107,13 @@ class FileService extends AbstractService implements FileServiceInterface
 
         return TgFile::with('fileable.stat')
             ->where(function (Builder $query) use ($words, $data) {
-                $query->whereHas('fileable', function (Builder $q) use ($words) {
-                    $q->where(function (Builder $inner) use ($words) {
-                        foreach ($words as $word) {
-                            $inner->orWhere('text', 'like', "%{$word}%");
-                        }
+                foreach ($words as $word) {
+                    $query->orWhereHas('fileable', function (Builder $q) use ($word) {
+                        $q->whereRaw('CONTAINS_UNICODE(text, ?)', [$word]);
                     });
-                })->orWhereHas('fileable', function (Builder $q) use ($data) {
-                    $q->whereRaw('SIMILARITY(text, ?) > 30', [$data]);
+                }
+                $query->orWhereHas('fileable', function (Builder $q) use ($data) {
+                    $q->whereRaw('SIMILARITY(text, ?) > 20', [$data]);
                 });
             })
             ->orderByRaw($this->getRelevanceOrder($data, $words))
@@ -166,13 +165,16 @@ class FileService extends AbstractService implements FileServiceInterface
     private function getRelevanceOrder(string $data, \Illuminate\Support\Collection $words): string
     {
         $safeData = str_replace("'", "''", mb_strtolower($data));
+        $videoClass = str_replace("'", "''", Video::class);
+        $voiceClass = str_replace("'", "''", Voice::class);
+        $quoteClass = str_replace("'", "''", Quote::class);
 
         // Получаем текст в зависимости от типа модели
         $textSql = "
             CASE tg_files.fileable_type
-                WHEN 'App\\\\Models\\\\Video' THEN (SELECT LOWER(text) FROM videos WHERE id = tg_files.fileable_id)
-                WHEN 'App\\\\Models\\\\Voice' THEN (SELECT LOWER(text) FROM voices WHERE id = tg_files.fileable_id)
-                WHEN 'App\\\\Models\\\\Quote' THEN (SELECT LOWER(text) FROM quotes WHERE id = tg_files.fileable_id)
+                WHEN '{$videoClass}' THEN (SELECT LOWER_UNICODE(text) FROM videos WHERE id = tg_files.fileable_id)
+                WHEN '{$voiceClass}' THEN (SELECT LOWER_UNICODE(text) FROM voices WHERE id = tg_files.fileable_id)
+                WHEN '{$quoteClass}' THEN (SELECT LOWER_UNICODE(text) FROM quotes WHERE id = tg_files.fileable_id)
                 ELSE ''
             END";
 
@@ -181,7 +183,7 @@ class FileService extends AbstractService implements FileServiceInterface
 
         foreach ($words as $word) {
             $safeWord = str_replace("'", "''", $word);
-            $relevanceSql .= " + (($textSql LIKE '%{$safeWord}%') * 5)";
+            $relevanceSql .= " + (CASE WHEN CONTAINS_UNICODE($textSql, '{$safeWord}') THEN 10 ELSE 0 END)";
         }
 
         return "($relevanceSql) DESC";
