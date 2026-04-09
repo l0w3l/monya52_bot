@@ -35,7 +35,15 @@ class AppServiceProvider extends ServiceProvider
                 if ($a === null || $b === null) {
                     return 0;
                 }
-                similar_text(mb_strtolower((string) $a), mb_strtolower((string) $b), $percent);
+                $a = mb_strtolower((string) $a);
+                $b = mb_strtolower((string) $b);
+                if ($a === $b) {
+                    return 100;
+                }
+                if ($a === '' || $b === '') {
+                    return 0;
+                }
+                similar_text($a, $b, $percent);
 
                 return $percent;
             }, 2);
@@ -50,6 +58,42 @@ class AppServiceProvider extends ServiceProvider
                 }
 
                 return mb_stripos((string) $haystack, (string) $needle) !== false;
+            }, 2);
+
+            $pdo->sqliteCreateFunction('FUZZY_MATCH', function ($text, $query) {
+                if ($text === null || $query === null || $query === '') {
+                    return 0;
+                }
+                $text = mb_strtolower((string) $text);
+                $query = mb_strtolower((string) $query);
+
+                // 1. Exact or partial word match (High score)
+                if (mb_stripos($text, $query) !== false) {
+                    return 100;
+                }
+
+                // 2. Character overlap (Fuzzy/Scattered match)
+                $charsQ = preg_split('//u', $query, -1, PREG_SPLIT_NO_EMPTY);
+                $charsT = preg_split('//u', $text, -1, PREG_SPLIT_NO_EMPTY);
+                $matched = 0;
+                $tempText = $text;
+                foreach ($charsQ as $char) {
+                    $pos = mb_stripos($tempText, $char);
+                    if ($pos !== false) {
+                        $matched++;
+                        // Remove matched char to handle duplicates correctly
+                        $tempText = mb_substr($tempText, 0, $pos).mb_substr($tempText, $pos + 1);
+                    }
+                }
+
+                $score = ($matched / (mb_strlen($query) ?: 1)) * 100;
+                // Penalize for length difference to avoid long texts matching everything
+                $lenDiff = abs(mb_strlen($text) - mb_strlen($query));
+                if ($lenDiff > 10) {
+                    $score -= min(30, ($lenDiff - 10));
+                }
+
+                return max(0, $score);
             }, 2);
         }
     }

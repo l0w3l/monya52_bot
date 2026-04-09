@@ -71,8 +71,19 @@ class FileService extends AbstractService implements FileServiceInterface
             ->values();
 
         if ($words->isEmpty()) {
-            /** @var User */
+            /** @var User|null */
             $user = Auth::guard('telegram')->user();
+
+            if (! $user) {
+                return TgFile::with('fileable.stat')
+                    ->whereHas('fileable', function (Builder $builder) {
+                        $builder->whereNotNull('text');
+                    })
+                    ->latest()
+                    ->offset($offset)
+                    ->limit($limit)
+                    ->get();
+            }
 
             $historyQuery = $user->tgFiles()->latest();
             $historyCount = (clone $historyQuery)->count();
@@ -105,24 +116,43 @@ class FileService extends AbstractService implements FileServiceInterface
             return $results;
         }
 
-        return TgFile::with('fileable.stat')
-            ->where(function (Builder $query) use ($words, $data) {
-                foreach ($words as $word) {
-                    $query->orWhereHas('fileable', function (Builder $q) use ($word) {
-                        $q->whereRaw('CONTAINS_UNICODE(text, ?)', [$word]);
-                    });
-                }
-                $query->orWhereHas('fileable', function (Builder $q) use ($data) {
-                    $q->whereRaw('SIMILARITY(text, ?) > 20', [$data]);
-                });
+        $videoClass = Video::class;
+        $voiceClass = Voice::class;
+        $quoteClass = Quote::class;
+
+        // Using a join to get the text once and optimize search
+        $query = TgFile::query()
+            ->select('tg_files.*')
+            ->leftJoin('videos', function ($join) use ($videoClass) {
+                $join->on('tg_files.fileable_id', '=', 'videos.id')
+                    ->where('tg_files.fileable_type', '=', $videoClass);
             })
-            ->orderByRaw($this->getRelevanceOrder($data, $words))
-            ->orderByRaw('
-                    CASE
-                        WHEN tg_files.created_at >= ? THEN 0
-                        ELSE 1
-                    END
-                ', [now()->subWeek()])
+            ->leftJoin('voices', function ($join) use ($voiceClass) {
+                $join->on('tg_files.fileable_id', '=', 'voices.id')
+                    ->where('tg_files.fileable_type', '=', $voiceClass);
+            })
+            ->leftJoin('quotes', function ($join) use ($quoteClass) {
+                $join->on('tg_files.fileable_id', '=', 'quotes.id')
+                    ->where('tg_files.fileable_type', '=', $quoteClass);
+            })
+            ->addSelect(DB::raw("COALESCE(videos.text, voices.text, quotes.text, '') as combined_text"));
+
+        $query->where(function ($q) use ($words, $data) {
+            foreach ($words as $word) {
+                $q->orWhereRaw('CONTAINS_UNICODE(combined_text, ?)', [$word]);
+            }
+            $q->orWhereRaw('FUZZY_MATCH(combined_text, ?) > 60', [$data]);
+        });
+
+        // Calculate relevance for ordering
+        $relevanceSql = 'FUZZY_MATCH(combined_text, '.DB::getPdo()->quote($data).')';
+        foreach ($words as $word) {
+            $relevanceSql .= ' + (CASE WHEN CONTAINS_UNICODE(combined_text, '.DB::getPdo()->quote($word).') THEN 30 ELSE 0 END)';
+        }
+
+        return $query->with('fileable.stat')
+            ->orderByRaw("($relevanceSql) DESC")
+            ->orderByRaw('CASE WHEN tg_files.created_at >= ? THEN 0 ELSE 1 END', [now()->subWeek()])
             ->orderByDesc(DB::raw('(
                     select s.usages
                     from stats s
@@ -160,32 +190,5 @@ class FileService extends AbstractService implements FileServiceInterface
     public function randomQuote(): TgFile
     {
         return TgFile::where('fileable_type', Quote::class)->inRandomOrder()->first();
-    }
-
-    private function getRelevanceOrder(string $data, \Illuminate\Support\Collection $words): string
-    {
-        $safeData = str_replace("'", "''", mb_strtolower($data));
-        $videoClass = str_replace("'", "''", Video::class);
-        $voiceClass = str_replace("'", "''", Voice::class);
-        $quoteClass = str_replace("'", "''", Quote::class);
-
-        // Получаем текст в зависимости от типа модели
-        $textSql = "
-            CASE tg_files.fileable_type
-                WHEN '{$videoClass}' THEN (SELECT LOWER_UNICODE(text) FROM videos WHERE id = tg_files.fileable_id)
-                WHEN '{$voiceClass}' THEN (SELECT LOWER_UNICODE(text) FROM voices WHERE id = tg_files.fileable_id)
-                WHEN '{$quoteClass}' THEN (SELECT LOWER_UNICODE(text) FROM quotes WHERE id = tg_files.fileable_id)
-                ELSE ''
-            END";
-
-        // Ранжирование по схожести всей фразы + баллы за каждое слово
-        $relevanceSql = "SIMILARITY($textSql, '{$safeData}')";
-
-        foreach ($words as $word) {
-            $safeWord = str_replace("'", "''", $word);
-            $relevanceSql .= " + (CASE WHEN CONTAINS_UNICODE($textSql, '{$safeWord}') THEN 10 ELSE 0 END)";
-        }
-
-        return "($relevanceSql) DESC";
     }
 }
