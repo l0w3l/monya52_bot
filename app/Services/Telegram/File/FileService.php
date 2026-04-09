@@ -140,6 +140,7 @@ class FileService extends AbstractService implements FileServiceInterface
             CASE tg_files.fileable_type
                 WHEN 'App\\\\Models\\\\Video' THEN (SELECT LOWER(text) FROM videos WHERE id = tg_files.fileable_id)
                 WHEN 'App\\\\Models\\\\Voice' THEN (SELECT LOWER(text) FROM voices WHERE id = tg_files.fileable_id)
+                WHEN 'App\\\\Models\\\\Quote' THEN (SELECT LOWER(text) FROM quotes WHERE id = tg_files.fileable_id)
                 ELSE ''
             END";
 
