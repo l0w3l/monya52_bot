@@ -49,6 +49,8 @@ class UniqueMediaCommand extends Command
                             filesize($tgFile->storagePath) === filesize($clearTgFile->storagePath) &&
                             md5_file($clearTgFile->storagePath) === md5_file($tgFile->storagePath)
                         ) {
+                            $this->output->write(PHP_EOL);
+
                             $this->alert("Copy was detected! ID: {$tgFile->id}");
                             $tgFile->delete();
                             $copiesCount++;
