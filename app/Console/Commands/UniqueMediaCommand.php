@@ -44,7 +44,11 @@ class UniqueMediaCommand extends Command
                     $this->output->write("\rFile process: {$tgFile->id}...");
 
                     foreach ($clear as $clearTgFile) {
-                        if (file_exists($clearTgFile->storagePath) && filesize($tgFile->storagePath) === filesize($clearTgFile->storagePath) && md5_file($clearTgFile->storagePath) === md5_file($tgFile->storagePath)) {
+                        if (
+                            file_exists($tgFile->storagePath) && file_exists($clearTgFile->storagePath) &&
+                            filesize($tgFile->storagePath) === filesize($clearTgFile->storagePath) &&
+                            md5_file($clearTgFile->storagePath) === md5_file($tgFile->storagePath)
+                        ) {
                             $this->alert("Copy was detected! ID: {$tgFile->id}");
                             $tgFile->delete();
                             $copiesCount++;
