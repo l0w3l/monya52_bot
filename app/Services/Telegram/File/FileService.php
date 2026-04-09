@@ -66,8 +66,8 @@ class FileService extends AbstractService implements FileServiceInterface
     public function fullTextMatch(string $data, int $offset = 0, int $limit = 10): Collection
     {
         $words = collect(explode(' ', $data))
-            ->map(fn ($word) => trim(mb_strtolower($word)))
-            ->filter(fn ($word) => mb_strlen($word) > 1)
+            ->map(fn($word) => trim(mb_strtolower($word)))
+            ->filter(fn($word) => mb_strlen($word) > 1)
             ->values();
 
         if ($words->isEmpty()) {
@@ -116,6 +116,7 @@ class FileService extends AbstractService implements FileServiceInterface
             return $results;
         }
 
+
         $videoClass = Video::class;
         $voiceClass = Voice::class;
         $quoteClass = Quote::class;
@@ -145,9 +146,9 @@ class FileService extends AbstractService implements FileServiceInterface
         });
 
         // Calculate relevance for ordering
-        $relevanceSql = 'FUZZY_MATCH(combined_text, '.DB::getPdo()->quote($data).')';
+        $relevanceSql = 'FUZZY_MATCH(combined_text, ' . DB::getPdo()->quote($data) . ')';
         foreach ($words as $word) {
-            $relevanceSql .= ' + (CASE WHEN CONTAINS_UNICODE(combined_text, '.DB::getPdo()->quote($word).') THEN 30 ELSE 0 END)';
+            $relevanceSql .= ' + (CASE WHEN CONTAINS_UNICODE(combined_text, ' . DB::getPdo()->quote($word) . ') THEN 30 ELSE 0 END)';
         }
 
         return $query->with('fileable.stat')

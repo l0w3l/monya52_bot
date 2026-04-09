@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Storage;
  * @property string $file_unique_id
  * @property int|null $file_size
  * @property string|null $file_path
+ * @property string $storagePath
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read AbstractMediaModel $fileable
@@ -61,14 +62,14 @@ class TgFile extends Model
     public function storagePath(): Attribute
     {
         return Attribute::make(
-            get: fn () => Storage::disk('public')->path($this->file_path),
+            get: fn() => Storage::disk('public')->path($this->file_path),
         );
     }
 
     public function url(): Attribute
     {
         return Attribute::make(
-            get: fn () => Storage::disk('public')->url($this->file_path),
+            get: fn() => Storage::disk('public')->url($this->file_path),
         );
     }
 
