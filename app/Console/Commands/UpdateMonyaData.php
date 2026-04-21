@@ -54,7 +54,7 @@ class UpdateMonyaData extends Command
                     $this->alert("Check {$voice['file_path']}...");
 
                     try {
-                        $file = $client->get('/storage/' . $voice['file_path']);
+                        $file = $client->get('/storage/'.$voice['file_path']);
 
                         if ($file->successful()) {
                             Storage::disk('local')->put($voice['file_path'], $file->body());

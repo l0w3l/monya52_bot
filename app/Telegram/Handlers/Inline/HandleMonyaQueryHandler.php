@@ -40,12 +40,6 @@ class HandleMonyaQueryHandler extends AbstractTelegramHandler
                         $file->file_id,
                         $file->fileable->prettyText(),
                     );
-                } elseif ($file->fileable instanceof Quote) {
-                    $inlineQueryResultVoices[] = new InlineQueryResultCachedSticker(
-                        (string) $file->id,
-                        $file->file_id,
-
-                    );
                 }
             }
 

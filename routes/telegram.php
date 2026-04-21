@@ -11,30 +11,33 @@ use App\Telegram\Handlers\Random\RandomQuoteCommandHandler;
 use App\Telegram\Handlers\StartCommand;
 use App\Telegram\Handlers\StatCommandHandler;
 use App\Telegram\Keyboards\Inline\Stat\StatInlineKeyboardFactory;
+use App\Telegram\Middlewares\AuthMiddleware;
 use App\Telegram\Middlewares\Private\MonyaDetectMiddleware;
 use App\Telegram\Middlewares\Private\ReplyToMonyaMiddleware;
 use Lowel\Telepath\Facades\Telepath;
 use Lowel\Telepath\Middlewares\Messages\Type\PrivateChatMiddleware;
 
-Telepath::middleware(PrivateChatMiddleware::class)
-    ->group(function () {
-        Telepath::onCommand('start', StartCommand::class);
-    });
-
 Telepath::middleware(MonyaDetectMiddleware::class)
     ->onMessage(NewMessageFromMonyaHandler::class);
 
-Telepath::onCommand('random', RandomMonyaCommand::class);
-Telepath::onCommand('random_voice', RandomMonyaVoiceCommand::class);
-Telepath::onCommand('random_video', RandomMonyaVideoNoteCommand::class);
-Telepath::onCommand('random_quote', RandomQuoteCommandHandler::class);
-Telepath::onCommand('stats', StatCommandHandler::class);
+Telepath::middleware(AuthMiddleware::class)->group(function () {
+    Telepath::middleware(PrivateChatMiddleware::class)
+        ->group(function () {
+            Telepath::onCommand('start', StartCommand::class);
+        });
 
-Telepath::onInlineQuery(HandleMonyaQueryHandler::class);
-Telepath::onInlineQueryChosenResult(MonyaChosenResultHandler::class);
+    Telepath::onCommand('random', RandomMonyaCommand::class);
+    Telepath::onCommand('random_voice', RandomMonyaVoiceCommand::class);
+    Telepath::onCommand('random_video', RandomMonyaVideoNoteCommand::class);
+    Telepath::onCommand('random_quote', RandomQuoteCommandHandler::class);
+    Telepath::onCommand('stats', StatCommandHandler::class);
 
-Telepath::middleware(ReplyToMonyaMiddleware::class)->group(function () {
-    Telepath::onCommand('quote', QuoteCommandHandler::class);
+    Telepath::onInlineQuery(HandleMonyaQueryHandler::class);
+    Telepath::onInlineQueryChosenResult(MonyaChosenResultHandler::class);
+
+    Telepath::middleware(ReplyToMonyaMiddleware::class)->group(function () {
+        Telepath::onCommand('quote', QuoteCommandHandler::class);
+    });
+
+    Telepath::keyboard(StatInlineKeyboardFactory::class);
 });
-
-Telepath::keyboard(StatInlineKeyboardFactory::class);

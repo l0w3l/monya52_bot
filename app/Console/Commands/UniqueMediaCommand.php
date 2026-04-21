@@ -34,33 +34,33 @@ class UniqueMediaCommand extends Command
         $copiesCount = 0;
 
         DB::transaction(function () use (&$copiesCount) {
-            TgFile::with('fileable')->whereHas('fileable', function (Builder $builder) {
-                $builder->whereNotNull('text');
-            })->chunk(100, function (Collection $chunk) use (&$copiesCount) {
-                /** @var TgFile $file */
-                foreach ($chunk as $file) {
-                    $originalFile = TgFile::whereHas('fileable', function (Builder $builder) use ($file) {
-                        $builder->where('text', trim($file->fileable->text));
-                    })->first();
+            /**
+             * @var Collection<int, TgFile>
+             */
+            $clear = new Collection();
 
-                    if ($originalFile === null) {
-                        $file->fileable->update(['text' => trim($file->fileable->text)]);
+            TgFile::chunk(100, function (Collection $chunk) use (&$clear, &$copiesCount) {
+                foreach ($chunk as $tgFile) {
+                    $this->output->write("\rFile process: {$tgFile->id}...");
 
-                        $originalFile = TgFile::whereHas('fileable', function (Builder $builder) use ($file) {
-                            $builder->where('text', trim($file->fileable->text));
-                        })->first();
+                    foreach ($clear as $clearTgFile) {
+                        if (
+                            file_exists($tgFile->storagePath) && file_exists($clearTgFile->storagePath) &&
+                            filesize($tgFile->storagePath) === filesize($clearTgFile->storagePath) &&
+                            md5_file($clearTgFile->storagePath) === md5_file($tgFile->storagePath)
+                        ) {
+                            $this->output->write(PHP_EOL);
+
+                            $this->alert("Copy was detected! ID: {$tgFile->id}");
+                            $tgFile->delete();
+                            $copiesCount++;
+                            $tgFile = null;
+                            break;
+                        }
                     }
 
-                    if ($originalFile->created_at > $file->created_at) {
-                        $tmp = $originalFile;
-                        $originalFile = $file;
-                        $file = $tmp;
-                    }
-
-                    if ($file->id !== $originalFile->id) {
-                        $this->info("FoundCopy: {$file->id} {$file->created_at} (original: {$originalFile->id} {$originalFile->created_at})");
-                        $file->delete();
-                        $copiesCount++;
+                    if ($tgFile) {
+                        $clear[] = $tgFile;
                     }
                 }
             });

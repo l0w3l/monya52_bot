@@ -4,19 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services\QuoteApi;
 
-use Exception;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Sleep;
 use Lowel\LaravelServiceMaker\Services\AbstractService;
-use Lowel\Telepath\Facades\Extrasense;
-use Lowel\Telepath\Facades\Paranormal;
 use Lowel\Telepath\Facades\SpiritBox;
 use Phptg\BotApi\FailResult;
 use Phptg\BotApi\TelegramBotApi;
 use Phptg\BotApi\Type\Chat;
-use Phptg\BotApi\Type\File;
 use Phptg\BotApi\Type\Message;
 use Phptg\BotApi\Type\MessageOrigin;
 use Phptg\BotApi\Type\MessageOriginChannel;
@@ -31,7 +26,7 @@ class QuoteApiService extends AbstractService implements QuoteApiServiceInterfac
 {
     public function getImageQuote(Message $message): string
     {
-        $createForPathRelative = 'quotes/' . $message->messageId . '.webp';
+        $createForPathRelative = 'quotes/'.$message->messageId.'.webp';
         $from = $this->resolveFrom(
             $message->forwardOrigin ?? $message->from ?? $message->senderChat ?? null
         );
