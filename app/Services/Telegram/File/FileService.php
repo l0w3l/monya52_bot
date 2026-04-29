@@ -76,7 +76,7 @@ class FileService extends AbstractService implements FileServiceInterface
              */
             $user = Auth::guard('telegram')->user();
 
-            return $user->tgFiles()->with('fileable.stat')->latest()->limit($limit)->offset($offset)->get();
+            return $user->tgFiles()->with('fileable.stat')->uniqueIds()->latest()->limit($limit)->offset($offset)->get();
         }
 
         $words = collect(explode(' ', $data))
