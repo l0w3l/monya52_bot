@@ -1,0 +1,15 @@
+services:
+  quote-api:
+    build: ./quote-api/
+    environment:
+      - NODE_ENV=production
+      - "BOT_TOKEN=${QUOTE_API_TOKEN}"
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 1G
