@@ -9,6 +9,7 @@ use App\Models\Voice;
 use App\Services\Telegram\File\FileServiceInterface;
 use Lowel\Telepath\Core\Router\Handler\AbstractTelegramHandler;
 use Lowel\Telepath\Facades\SpiritBox;
+use Phptg\BotApi\Type\Inline\InlineQueryResultCachedAudio;
 use Phptg\BotApi\Type\Inline\InlineQueryResultCachedVideo;
 use Phptg\BotApi\Type\Inline\InlineQueryResultCachedVoice;
 use Phptg\BotApi\Type\Update\Update;
@@ -31,12 +32,14 @@ class HandleMonyaQueryHandler extends AbstractTelegramHandler
                         (string) $file->id,
                         $file->file_id,
                         $file->fileable->prettyText(),
+                        "Кружок"
                     );
                 } elseif ($file->fileable instanceof Voice) {
-                    $inlineQueryResultVoices[] = new InlineQueryResultCachedVoice(
+                    $inlineQueryResultVoices[] = new InlineQueryResultCachedVideo(
                         (string) $file->id,
                         $file->file_id,
                         $file->fileable->prettyText(),
+                        "ГС"
                     );
                 }
             }

@@ -11,11 +11,13 @@ use App\Models\Movie;
 use App\Models\Music;
 use App\Models\Quote;
 use App\Models\TgFile;
+use App\Models\User;
 use App\Models\Video;
 use App\Models\Voice;
 use DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Lowel\LaravelServiceMaker\Services\AbstractService;
 use Lowel\Telepath\Facades\SpiritBox;
@@ -67,6 +69,16 @@ class FileService extends AbstractService implements FileServiceInterface
 
     public function fullTextMatch(string $data, int $offset = 0, int $limit = 10): Collection
     {
+        // if data is empty return user usages
+        if (empty(trim($data))) {
+            /**
+             * @var User
+             */
+            $user = Auth::guard('telegram')->user();
+
+            return $user->tgFiles()->with('fileable.stat')->latest()->limit($limit)->offset($offset)->get();
+        }
+
         $words = collect(explode(' ', $data))
             ->map(fn ($word) => trim(mb_strtolower($word)))
             ->filter(fn ($word) => mb_strlen($word) > 1)
@@ -79,7 +91,10 @@ class FileService extends AbstractService implements FileServiceInterface
 
         $videoClass = Video::class;
         $voiceClass = Voice::class;
-        $quoteClass = Quote::class;
+        $movieClass = Movie::class;
+        $musicClass = Music::class;
+        $memeClass = Meme::class;
+
 
         $query = TgFile::query()
             ->select('tg_files.*')
@@ -92,32 +107,38 @@ class FileService extends AbstractService implements FileServiceInterface
                 $join->on('tg_files.fileable_id', '=', 'voices.id')
                     ->where('tg_files.fileable_type', '=', $voiceClass);
             })
-            ->leftJoin('quotes', function ($join) use ($quoteClass) {
-                $join->on('tg_files.fileable_id', '=', 'quotes.id')
-                    ->where('tg_files.fileable_type', '=', $quoteClass);
+            ->leftJoin('movies', function ($join) use ($movieClass) {
+                $join->on('tg_files.fileable_id', '=', 'movies.id')
+                    ->where('tg_files.fileable_type', '=', $movieClass);
+            })->leftJoin('movies', function ($join) use ($musicClass) {
+                $join->on('tg_files.fileable_id', '=', 'music.id')
+                    ->where('tg_files.fileable_type', '=', $musicClass);
+            })->leftJoin('movies', function ($join) use ($memeClass) {
+                $join->on('tg_files.fileable_id', '=', 'memes.id')
+                    ->where('tg_files.fileable_type', '=', $memeClass);
             })
-            ->addSelect(DB::raw("COALESCE(videos.text, voices.text, quotes.text, '') as combined_text"));
+            ->addSelect(DB::raw("COALESCE(videos.text, voices.text, music.text, movies.text, memes.text, '') as combined_text"));
 
         // Поиск
         $query->where(function ($q) use ($words, $data) {
             foreach ($words as $word) {
                 // Используем ILIKE (регистронезависимый поиск в Postgres)
-                $q->orWhereRaw("COALESCE(videos.text, voices.text, quotes.text, '') ILIKE ?", ["%{$word}%"]);
+                $q->orWhereRaw("COALESCE(videos.text, voices.text, music.text, movies.text, memes.text, '') ILIKE ?", ["%{$word}%"]);
             }
 
             // Аналог FUZZY_MATCH в Postgres через расширение pg_trgm (оператор %)
             // Также можно использовать similarity() для оценки схожести
-            $q->orWhereRaw("COALESCE(videos.text, voices.text, quotes.text, '') % ?", [$data]);
+            $q->orWhereRaw("COALESCE(videos.text, voices.text, music.text, movies.text, memes.text, '') % ?", [$data]);
         });
 
         // Релевантность для Postgres
         // similarity() возвращает от 0 до 1, поэтому умножаем на 100 для соответствия вашей логике > 60
         $quotedData = DB::getPdo()->quote($data);
-        $relevanceSql = "similarity(COALESCE(videos.text, voices.text, quotes.text, ''), $quotedData) * 100";
+        $relevanceSql = "similarity(COALESCE(videos.text, voices.text, music.text, movies.text, memes.text, ''), $quotedData) * 100";
 
         foreach ($words as $word) {
             $quotedWord = DB::getPdo()->quote("%{$word}%");
-            $relevanceSql .= " + (CASE WHEN COALESCE(videos.text, voices.text, quotes.text, '') ILIKE $quotedWord THEN 30 ELSE 0 END)";
+            $relevanceSql .= " + (CASE WHEN COALESCE(videos.text, voices.text, music.text, movies.text, memes.text, '') ILIKE $quotedWord THEN 30 ELSE 0 END)";
         }
 
         return $query->with('fileable.stat')

@@ -9,7 +9,6 @@ use App\Telegram\Keyboards\Inline\Stat\StatInlineKeyboardFactory;
 use Lowel\Telepath\Core\Router\Keyboard\Buttons\Inline\AbstractCallbackButton;
 use Lowel\Telepath\Facades\Extrasense;
 use Lowel\Telepath\Facades\SpiritBox;
-use Phptg\BotApi\TelegramBotApi;
 
 class DislikeButton extends AbstractCallbackButton
 {
@@ -18,7 +17,6 @@ class DislikeButton extends AbstractCallbackButton
         return static function (
             StatServiceInterface $statService,
             StatInlineKeyboardFactory $statInlineKeyboard,
-            TelegramBotApi $telegram,
         ) {
             $statId = (int) explode(':', (Extrasense::update()->callbackQuery->data))[1];
             $stat = $statService->find($statId);
