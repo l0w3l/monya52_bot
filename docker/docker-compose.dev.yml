@@ -1,0 +1,26 @@
+services:
+  vite:
+    build:
+      context: ./php
+      args:
+        HOST_UID: ${HOST_UID}
+        HOST_GID: ${HOST_GID}
+    user: root
+    networks:
+      - backend
+    restart: "no"
+    entrypoint: [ "bash", "/usr/local/bin/scripts/vite_dev.sh" ]
+    volumes:
+      - "${STORAGE_APP}:/var/www/html"
+
+  whisper:
+    env_file:
+      - .env
+    build: ./whisper
+    networks:
+      - backend
+    volumes:
+      - "${STORAGE_WHISPER}:/root/.cache/whisper"
+    environment:
+      WHISPER_MODEL: ${WHISPER_MODEL:-base}
+    restart: "no"
