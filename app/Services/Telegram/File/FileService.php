@@ -76,7 +76,7 @@ class FileService extends AbstractService implements FileServiceInterface
              */
             $user = Auth::guard('telegram')->user();
 
-            return $user->tgFiles()->with('fileable.stat')->uniqueIds()->latest()->limit($limit)->offset($offset)->get();
+            return $user->tgFiles()->distinct()->with('fileable.stat')->latest()->limit($limit)->offset($offset)->get();
         }
 
         $words = collect(explode(' ', $data))
@@ -109,10 +109,10 @@ class FileService extends AbstractService implements FileServiceInterface
             ->leftJoin('movies', function ($join) use ($movieClass) {
                 $join->on('tg_files.fileable_id', '=', 'movies.id')
                     ->where('tg_files.fileable_type', '=', $movieClass);
-            })->leftJoin('movies', function ($join) use ($musicClass) {
+            })->leftJoin('music', function ($join) use ($musicClass) {
                 $join->on('tg_files.fileable_id', '=', 'music.id')
                     ->where('tg_files.fileable_type', '=', $musicClass);
-            })->leftJoin('movies', function ($join) use ($memeClass) {
+            })->leftJoin('memes', function ($join) use ($memeClass) {
                 $join->on('tg_files.fileable_id', '=', 'memes.id')
                     ->where('tg_files.fileable_type', '=', $memeClass);
             })
