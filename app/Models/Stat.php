@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Media\AbstractMediaModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -13,8 +14,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property int $usages
  * @property int $likes
  * @property int $dislikes
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  * @property-read AbstractMediaModel $statable
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Stat newModelQuery()

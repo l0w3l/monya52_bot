@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\TgFile;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -37,7 +36,7 @@ class UniqueMediaCommand extends Command
             /**
              * @var Collection<int, TgFile>
              */
-            $clear = new Collection();
+            $clear = new Collection;
 
             TgFile::chunk(100, function (Collection $chunk) use (&$clear, &$copiesCount) {
                 foreach ($chunk as $tgFile) {

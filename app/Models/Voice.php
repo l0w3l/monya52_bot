@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Media\AbstractMediaModel;
 use App\Services\Telegram\Stat\StatServiceInterface;
 use App\Telegram\Keyboards\Inline\Stat\StatInlineKeyboardFactory;
+use Illuminate\Support\Carbon;
 use Lowel\Telepath\Facades\SpiritBox;
 use Phptg\BotApi\FailResult;
 use Phptg\BotApi\Type\Message;
@@ -15,10 +16,10 @@ use RuntimeException;
  * @property int $duration
  * @property string|null $mime_type
  * @property string|null $text
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\TgFile|null $file
- * @property-read \App\Models\Stat|null $stat
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read TgFile|null $file
+ * @property-read Stat|null $stat
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Voice newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Voice newQuery()

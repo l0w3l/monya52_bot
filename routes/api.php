@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\MediaController;
-use App\Services\Telegram\File\FileServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 

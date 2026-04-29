@@ -1,6 +1,9 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use Lowel\Telepath\TelepathServiceProvider;
+
 return [
-    App\Providers\AppServiceProvider::class,
-    \Lowel\Telepath\TelepathServiceProvider::class,
+    AppServiceProvider::class,
+    TelepathServiceProvider::class,
 ];

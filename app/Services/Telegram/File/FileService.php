@@ -6,19 +6,21 @@ namespace App\Services\Telegram\File;
 
 use App\Exceptions\Services\Telegram\File\CannotDownloadFileFromTelegramException;
 use App\Models\Media\AbstractMediaModel;
+use App\Models\Meme;
+use App\Models\Movie;
+use App\Models\Music;
 use App\Models\Quote;
 use App\Models\TgFile;
-use App\Models\User;
 use App\Models\Video;
 use App\Models\Voice;
 use DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Lowel\LaravelServiceMaker\Services\AbstractService;
 use Lowel\Telepath\Facades\SpiritBox;
 use Phptg\BotApi\FailResult;
+use Phptg\BotApi\Type\Audio;
 use Phptg\BotApi\Type\PhotoSize as TelegramPhoto;
 use Phptg\BotApi\Type\Sticker\Sticker;
 use Phptg\BotApi\Type\Video as TelegramVideo;
@@ -29,7 +31,7 @@ class FileService extends AbstractService implements FileServiceInterface
 {
     public function __construct() {}
 
-    public function createFor(TelegramVoice|TelegramVideo|TelegramVideoNote|TelegramPhoto|Sticker $telegramFile, AbstractMediaModel $fileable): TgFile
+    public function createFor(TelegramVoice|TelegramVideo|TelegramVideoNote|TelegramPhoto|Sticker|Audio $telegramFile, AbstractMediaModel $fileable): TgFile
     {
         $file = SpiritBox::getFile($telegramFile->fileId);
         if ($file instanceof FailResult) {
@@ -40,7 +42,7 @@ class FileService extends AbstractService implements FileServiceInterface
 
         Storage::disk('public')->put(
             $file->filePath,
-            $fileContent,
+            $fileContent->getBody(),
         );
 
         return TgFile::create([
@@ -53,12 +55,12 @@ class FileService extends AbstractService implements FileServiceInterface
         ]);
     }
 
-    public function exists(TelegramVoice|TelegramVideo|TelegramVideoNote $telegramFile): bool
+    public function exists(TelegramVoice|TelegramVideo|TelegramVideoNote|Audio $telegramFile): bool
     {
         return TgFile::where('file_id', $telegramFile->fileId)->exists();
     }
 
-    public function doesntExists(TelegramVideo|TelegramVoice|TelegramVideoNote $telegramFile): bool
+    public function doesntExists(TelegramVideo|TelegramVoice|TelegramVideoNote|Audio $telegramFile): bool
     {
         return ! $this->exists($telegramFile);
     }
@@ -66,8 +68,8 @@ class FileService extends AbstractService implements FileServiceInterface
     public function fullTextMatch(string $data, int $offset = 0, int $limit = 10): Collection
     {
         $words = collect(explode(' ', $data))
-            ->map(fn($word) => trim(mb_strtolower($word)))
-            ->filter(fn($word) => mb_strlen($word) > 1)
+            ->map(fn ($word) => trim(mb_strtolower($word)))
+            ->filter(fn ($word) => mb_strlen($word) > 1)
             ->values();
 
         if ($words->isEmpty()) {
@@ -158,5 +160,21 @@ class FileService extends AbstractService implements FileServiceInterface
     public function randomQuote(): TgFile
     {
         return TgFile::where('fileable_type', Quote::class)->inRandomOrder()->first();
+    }
+
+    public function randomMeme(): TgFile
+    {
+        return TgFile::where('fileable_type', Meme::class)->inRandomOrder()->first();
+    }
+
+    public function randomMovie(): TgFile
+    {
+        return TgFile::where('fileable_type', Movie::class)->inRandomOrder()->first();
+
+    }
+
+    public function randomMusic(): TgFile
+    {
+        return TgFile::where('fileable_type', Music::class)->inRandomOrder()->first();
     }
 }

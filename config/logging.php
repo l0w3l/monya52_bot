@@ -1,5 +1,6 @@
 <?php
 
+use App\Logging\PrettyJsonFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -107,11 +108,11 @@ return [
 
         'stdout_pretty' => [
             'driver' => 'monolog',
-            'handler' => Monolog\Handler\StreamHandler::class,
+            'handler' => StreamHandler::class,
             'with' => [
                 'stream' => 'php://stdout',
             ],
-            'formatter' => App\Logging\PrettyJsonFormatter::class,
+            'formatter' => PrettyJsonFormatter::class,
         ],
 
         'syslog' => [
