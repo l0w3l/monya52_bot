@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace App\Telegram\Handlers\Inline;
 
+use App\Enums\MemeTypeEnum;
+use App\Models\Meme;
+use App\Models\Movie;
+use App\Models\Music;
 use App\Models\Video;
 use App\Models\Voice;
 use App\Services\Telegram\File\FileServiceInterface;
 use Lowel\Telepath\Core\Router\Handler\AbstractTelegramHandler;
 use Lowel\Telepath\Facades\SpiritBox;
 use Phptg\BotApi\Type\Inline\InlineQueryResultCachedAudio;
+use Phptg\BotApi\Type\Inline\InlineQueryResultCachedPhoto;
 use Phptg\BotApi\Type\Inline\InlineQueryResultCachedVideo;
 use Phptg\BotApi\Type\Inline\InlineQueryResultCachedVoice;
+use Phptg\BotApi\Type\Inline\InlineQueryResultVoice;
 use Phptg\BotApi\Type\Update\Update;
 
 class HandleMonyaQueryHandler extends AbstractTelegramHandler
@@ -32,15 +38,66 @@ class HandleMonyaQueryHandler extends AbstractTelegramHandler
                         (string) $file->id,
                         $file->file_id,
                         $file->fileable->prettyText(),
-                        "Кружок"
+                        'Кружок'
                     );
                 } elseif ($file->fileable instanceof Voice) {
+                    $inlineQueryResultVoices[] = new InlineQueryResultVoice(
+                        (string) $file->id,
+                        $file->file_id,
+                        $file->fileable->prettyText()
+                    );
+                } elseif ($file->fileable instanceof Movie) {
                     $inlineQueryResultVoices[] = new InlineQueryResultCachedVideo(
                         (string) $file->id,
                         $file->file_id,
                         $file->fileable->prettyText(),
-                        "ГС"
+                        'Кино'
                     );
+                } elseif ($file->fileable instanceof Music) {
+                    $inlineQueryResultVoices[] = new InlineQueryResultCachedAudio(
+                        (string) $file->id,
+                        $file->file_id,
+                        $file->fileable->prettyText()
+                    );
+                } elseif ($file->fileable instanceof Meme) {
+                    $meme = $file->fileable;
+
+                    if ($meme->type === MemeTypeEnum::IMAGE) {
+                        $inlineQueryResultVoices[] = new InlineQueryResultCachedPhoto(
+                            (string) $file->id,
+                            $file->file_id,
+                            $file->fileable->prettyText(),
+                            'Фото'
+                        );
+                    } elseif ($meme->type === MemeTypeEnum::VOICE) {
+                        $inlineQueryResultVoices[] = new InlineQueryResultCachedVoice(
+                            (string) $file->id,
+                            $file->file_id,
+                            $file->fileable->prettyText(),
+                            'ГС рарка'
+                        );
+                    } elseif ($meme->type === MemeTypeEnum::VIDEO_NOTE) {
+                        $inlineQueryResultVoices[] = new InlineQueryResultCachedVideo(
+                            (string) $file->id,
+                            $file->file_id,
+                            $file->fileable->prettyText(),
+                            'Кружок рарка'
+                        );
+                    } elseif ($meme->type === MemeTypeEnum::VIDEO) {
+                        $inlineQueryResultVoices[] = new InlineQueryResultCachedVideo(
+                            (string) $file->id,
+                            $file->file_id,
+                            $file->fileable->prettyText(),
+                            'Едит'
+                        );
+                    } elseif ($meme->type === MemeTypeEnum::AUDIO) {
+                        $inlineQueryResultVoices[] = new InlineQueryResultCachedAudio(
+                            (string) $file->id,
+                            $file->file_id,
+                            $file->fileable->prettyText(),
+                        );
+                    }
+
                 }
             }
 

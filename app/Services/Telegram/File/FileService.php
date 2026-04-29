@@ -95,7 +95,6 @@ class FileService extends AbstractService implements FileServiceInterface
         $musicClass = Music::class;
         $memeClass = Meme::class;
 
-
         $query = TgFile::query()
             ->select('tg_files.*')
             ->leftJoin('videos', function ($join) use ($videoClass) {
