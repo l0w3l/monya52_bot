@@ -24,7 +24,7 @@ class MusicService extends AbstractService implements MusicServiceInterface
             $music = Music::create([
                 'title' => $audio->title,
                 'text' => (($audio->title ?? '').' '.($audio->performer ?? ' ').' '.($audio->fileName ?? ' ').PHP_EOL).$text,
-                'cover_id' => $audio->thumbnail->fileId,
+                'cover_id' => $audio->thumbnail?->fileId,
             ]);
 
             $this->statService->createFor($music);
