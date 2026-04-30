@@ -50,10 +50,10 @@ class Meme extends AbstractMediaModel
         $message = match ($this->type) {
             MemeTypeEnum::VOICE => SpiritBox::sendVoice($this->file->file_id, caption: '<blockquote expandable>'.substr($this->file->fileable->text, 0, 1024).'</blockquote>', replyMarkup: (new StatInlineKeyboardFactory)->make()->build(['stat' => $this->stat])),
             MemeTypeEnum::VIDEO_NOTE => SpiritBox::sendVideoNote($this->file->file_id, replyMarkup: (new StatInlineKeyboardFactory)->make()->build(['stat' => $this->stat])),
-            MemeTypeEnum::AUDIO => SpiritBox::sendAudio($this->file->file_id, caption: '<blockquote expandable>'.substr($this->file->fileable->text, 0, 1024).'</blockquote>', replyMarkup: (new StatInlineKeyboardFactory)->make()->build(['stat' => $this->stat])),
-            MemeTypeEnum::VIDEO => SpiritBox::sendVideo($this->file->file_id, caption: '<blockquote expandable>'.substr($this->file->fileable->text, 0, 1024).'</blockquote>', replyMarkup: (new StatInlineKeyboardFactory)->make()->build(['stat' => $this->stat])),
+            MemeTypeEnum::AUDIO => SpiritBox::sendAudio($this->file->file_id, replyMarkup: (new StatInlineKeyboardFactory)->make()->build(['stat' => $this->stat])),
+            MemeTypeEnum::VIDEO => SpiritBox::sendVideo($this->file->file_id, replyMarkup: (new StatInlineKeyboardFactory)->make()->build(['stat' => $this->stat])),
             MemeTypeEnum::IMAGE => SpiritBox::sendPhoto($this->file->file_id, caption: '<blockquote expandable>'.substr($this->file->fileable->text, 0, 1024).'</blockquote>', replyMarkup: (new StatInlineKeyboardFactory)->make()->build(['stat' => $this->stat])),
-            MemeTypeEnum::GIF => SpiritBox::sendAnimation($this->file->file_id, caption: '<blockquote expandable>'.substr($this->file->fileable->text, 0, 1024).'</blockquote>', replyMarkup: (new StatInlineKeyboardFactory)->make()->build(['stat' => $this->stat])),
+            MemeTypeEnum::GIF => SpiritBox::sendAnimation($this->file->file_id, replyMarkup: (new StatInlineKeyboardFactory)->make()->build(['stat' => $this->stat])),
         };
 
         if ($message instanceof FailResult) {

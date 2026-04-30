@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Telegram\Handlers;
 
+use App\Exceptions\Services\Telegram\File\TelegramFileExistsInDatabaseException;
 use App\Services\Telegram\Movie\MovieService;
 use Lowel\Telepath\Core\Router\Handler\AbstractTelegramHandler;
 use Lowel\Telepath\Facades\Extrasense;
@@ -27,7 +28,11 @@ class MovieCommandHandler extends AbstractTelegramHandler
                 return;
             }
 
-            $movieService->createFor($video, $title);
+            try {
+                $movieService->createFor($video, $title);
+            } catch (TelegramFileExistsInDatabaseException) {
+                return;
+            }
 
             SpiritBox::setMessageReaction(Extrasense::chat()->id, Extrasense::message()->messageId, [new ReactionTypeEmoji('👍')]);
         };

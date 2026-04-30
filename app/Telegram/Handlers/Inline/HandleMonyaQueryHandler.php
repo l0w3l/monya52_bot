@@ -56,8 +56,7 @@ class HandleMonyaQueryHandler extends AbstractTelegramHandler
                 } elseif ($file->fileable instanceof Music) {
                     $inlineQueryResultVoices[] = new InlineQueryResultCachedAudio(
                         (string) $file->id,
-                        $file->file_id,
-                        $file->fileable->prettyText()
+                        $file->file_id
                     );
                 } elseif ($file->fileable instanceof Meme) {
                     $meme = $file->fileable;
@@ -93,8 +92,7 @@ class HandleMonyaQueryHandler extends AbstractTelegramHandler
                     } elseif ($meme->type === MemeTypeEnum::AUDIO) {
                         $inlineQueryResultVoices[] = new InlineQueryResultCachedAudio(
                             (string) $file->id,
-                            $file->file_id,
-                            $file->fileable->prettyText(),
+                            $file->file_id
                         );
                     }
 

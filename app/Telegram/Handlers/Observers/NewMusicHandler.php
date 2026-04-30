@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Telegram\Handlers;
+namespace App\Telegram\Handlers\Observers;
 
 use App\Exceptions\Services\Telegram\File\TelegramFileExistsInDatabaseException;
 use App\Services\Telegram\Music\MusicServiceInterface;
@@ -11,19 +11,19 @@ use Lowel\Telepath\Facades\Extrasense;
 use Lowel\Telepath\Facades\SpiritBox;
 use Phptg\BotApi\Type\ReactionTypeEmoji;
 
-class MusicCommandHandler extends AbstractTelegramHandler
+class NewMusicHandler extends AbstractTelegramHandler
 {
     public function handler(): callable
     {
         return static function (MusicServiceInterface $musicService) {
-            $reply = Extrasense::message()->replyToMessage;
+            $message = Extrasense::message();
 
-            if ($reply === null) {
+            if ($message->chat->id !== config('monya.storages.music')) {
                 return;
             }
 
-            if ($music = $reply->audio) {
-                $title = $reply->text ?? $reply->caption;
+            if ($music = $message->audio) {
+                $title = $message->text ?? $message->caption;
             } else {
                 return;
             }

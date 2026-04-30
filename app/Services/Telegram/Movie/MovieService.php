@@ -7,6 +7,7 @@ namespace App\Services\Telegram\Movie;
 use App\Models\Movie;
 use App\Services\Telegram\File\FileServiceInterface;
 use App\Services\Telegram\Stat\StatServiceInterface;
+use Illuminate\Support\Facades\DB;
 use Lowel\LaravelServiceMaker\Services\AbstractService;
 use Phptg\BotApi\Type\Video as TelegramVideo;
 
@@ -19,14 +20,16 @@ class MovieService extends AbstractService implements MovieServiceInterface
 
     public function createFor(TelegramVideo $video, ?string $text = null): Movie
     {
-        $movie = Movie::create([
-            'text' => $text,
-        ]);
+        return DB::transaction(function () use ($video, $text) {
+            $movie = Movie::create([
+                'text' => $text,
+            ]);
 
-        $this->statService->createFor($movie);
+            $this->statService->createFor($movie);
 
-        $this->fileService->createFor($video, $movie);
+            $this->fileService->createFor($video, $movie);
 
-        return $movie;
+            return $movie;
+        });
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Telegram\File;
 
 use App\Exceptions\Services\Telegram\File\CannotDownloadFileFromTelegramException;
+use App\Exceptions\Services\Telegram\File\TelegramFileExistsInDatabaseException;
 use App\Models\Media\AbstractMediaModel;
 use App\Models\Meme;
 use App\Models\Movie;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\Storage;
 use Lowel\LaravelServiceMaker\Services\AbstractService;
 use Lowel\Telepath\Facades\SpiritBox;
 use Phptg\BotApi\FailResult;
+use Phptg\BotApi\Type\Animation;
 use Phptg\BotApi\Type\Audio;
 use Phptg\BotApi\Type\PhotoSize as TelegramPhoto;
 use Phptg\BotApi\Type\Sticker\Sticker;
@@ -33,7 +35,7 @@ class FileService extends AbstractService implements FileServiceInterface
 {
     public function __construct() {}
 
-    public function createFor(TelegramVoice|TelegramVideo|TelegramVideoNote|TelegramPhoto|Sticker|Audio $telegramFile, AbstractMediaModel $fileable): TgFile
+    public function createFor(TelegramVoice|TelegramVideo|TelegramVideoNote|TelegramPhoto|Sticker|Audio|Animation $telegramFile, AbstractMediaModel $fileable): TgFile
     {
         $file = SpiritBox::getFile($telegramFile->fileId);
         if ($file instanceof FailResult) {
@@ -47,7 +49,7 @@ class FileService extends AbstractService implements FileServiceInterface
             $fileContent->getBody(),
         );
 
-        return TgFile::create([
+        $tgFile = new TgFile([
             'file_id' => $file->fileId,
             'file_unique_id' => $file->fileUniqueId,
             'file_size' => $file->fileSize,
@@ -55,6 +57,42 @@ class FileService extends AbstractService implements FileServiceInterface
             'fileable_type' => $fileable::class,
             'fileable_id' => $fileable->id,
         ]);
+
+        if ($this->existsInDatabase($tgFile)) {
+            throw new TelegramFileExistsInDatabaseException;
+        } else {
+            $tgFile->save();
+        }
+
+        return $tgFile;
+    }
+
+    public function existsInDatabase(TgFile $file): bool
+    {
+        /** @var TgFile $fileToCompare */
+        foreach (TgFile::lazy() as $fileToCompare) {
+            if ($this->compare($file, $fileToCompare)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function compare(TgFile $comparable, TgFile $compare): bool
+    {
+        return file_exists($comparable->storagePath) && file_exists($compare->storagePath) &&
+                filesize($comparable->storagePath) === filesize($compare->storagePath) &&
+                md5_file($compare->storagePath) === md5_file($comparable->storagePath);
+    }
+
+    public function delete(TgFile $file): void
+    {
+        if (file_exists($file->storagePath)) {
+            unlink($file->storagePath);
+        }
+
+        $file->delete();
     }
 
     public function exists(TelegramVoice|TelegramVideo|TelegramVideoNote|Audio $telegramFile): bool

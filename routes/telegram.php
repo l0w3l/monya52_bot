@@ -5,7 +5,10 @@ use App\Telegram\Handlers\Inline\MonyaChosenResultHandler;
 use App\Telegram\Handlers\MemeCommandHandler;
 use App\Telegram\Handlers\MovieCommandHandler;
 use App\Telegram\Handlers\MusicCommandHandler;
-use App\Telegram\Handlers\NewMessageFromMonyaHandler;
+use App\Telegram\Handlers\Observers\NewMemeHandler;
+use App\Telegram\Handlers\Observers\NewMessageFromMonyaHandler;
+use App\Telegram\Handlers\Observers\NewMovieHandler;
+use App\Telegram\Handlers\Observers\NewMusicHandler;
 use App\Telegram\Handlers\QuoteCommandHandler;
 use App\Telegram\Handlers\Random\RandomMemeCommandHandler;
 use App\Telegram\Handlers\Random\RandomMonyaCommand;
@@ -26,6 +29,10 @@ use Lowel\Telepath\Middlewares\Messages\Type\PrivateChatMiddleware;
 
 Telepath::middleware(MonyaDetectMiddleware::class)
     ->onMessage(NewMessageFromMonyaHandler::class);
+
+Telepath::onMessage(NewMemeHandler::class);
+Telepath::onMessage(NewMovieHandler::class);
+Telepath::onMessage(NewMusicHandler::class);
 
 Telepath::middleware(AuthMiddleware::class)->group(function () {
     Telepath::middleware(PrivateChatMiddleware::class)
