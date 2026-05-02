@@ -53,6 +53,7 @@ class TgFile extends Model
         'file_path',
         'fileable_id',
         'fileable_type',
+        'hash',
     ];
 
     /**

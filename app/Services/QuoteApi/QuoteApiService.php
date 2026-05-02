@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\QuoteApi;
 
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Lowel\LaravelServiceMaker\Services\AbstractService;
@@ -104,28 +105,30 @@ class QuoteApiService extends AbstractService implements QuoteApiServiceInterfac
 
     private function resolveAvatar(User|Chat $from): array
     {
-        $photos = SpiritBox::getUserProfilePhotos($from->id);
-
-        if ($photos instanceof FailResult || empty($photos->photos)) {
-            if (config('telepath.profiles.clean.token') === null) {
-                return [];
-            }
-
-            $cleanClient = new TelegramBotApi(config('telepath.profiles.clean.token'));
-            $photos = $cleanClient->getUserProfilePhotos($from->id);
+        return Cache::remember('avatar_url_'.$from->id, now()->addDay(), function () use ($from) {
+            $photos = SpiritBox::getUserProfilePhotos($from->id);
 
             if ($photos instanceof FailResult || empty($photos->photos)) {
-                return [];
+                if (config('telepath.profiles.clean.token') === null) {
+                    return [];
+                }
+
+                $cleanClient = new TelegramBotApi(config('telepath.profiles.clean.token'));
+                $photos = $cleanClient->getUserProfilePhotos($from->id);
+
+                if ($photos instanceof FailResult || empty($photos->photos)) {
+                    return [];
+                } else {
+                    return [
+                        'url' => $cleanClient->makeFileUrl($cleanClient->getFile($photos->photos[0][1]->fileId)),
+                    ];
+                }
             } else {
                 return [
-                    'url' => $cleanClient->makeFileUrl($cleanClient->getFile($photos->photos[0][1]->fileId)),
+                    'url' => $this->resolveFileToUrl($photos->photos[0][1]),
                 ];
             }
-        } else {
-            return [
-                'url' => $this->resolveFileToUrl($photos->photos[0][1]),
-            ];
-        }
+        });
     }
 
     private function resolveFileToUrl(PhotoSize|Sticker $photo): string

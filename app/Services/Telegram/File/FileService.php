@@ -43,6 +43,11 @@ class FileService extends AbstractService implements FileServiceInterface
         }
 
         $fileContent = SpiritBox::downloadFile($file);
+        $hash = md5($fileContent->getBody());
+
+        if (TgFile::where('hash', $hash)->exists()) {
+            throw new TelegramFileExistsInDatabaseException;
+        }
 
         Storage::disk('public')->put(
             $file->filePath,
@@ -56,19 +61,20 @@ class FileService extends AbstractService implements FileServiceInterface
             'file_path' => $file->filePath,
             'fileable_type' => $fileable::class,
             'fileable_id' => $fileable->id,
+            'hash' => $hash,
         ]);
 
-        if ($this->existsInDatabase($tgFile)) {
-            throw new TelegramFileExistsInDatabaseException;
-        } else {
-            $tgFile->save();
-        }
+        $tgFile->save();
 
         return $tgFile;
     }
 
     public function existsInDatabase(TgFile $file): bool
     {
+        if ($file->hash) {
+            return TgFile::where('hash', $file->hash)->exists();
+        }
+
         /** @var TgFile $fileToCompare */
         foreach (TgFile::lazy() as $fileToCompare) {
             if ($this->compare($file, $fileToCompare)) {
