@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Telegram\Handlers;
+namespace App\Telegram\Handlers\Observers;
 
+use App\Exceptions\Services\Telegram\File\TelegramFileExistsInDatabaseException;
 use App\Services\Telegram\File\FileServiceInterface;
 use App\Services\Telegram\Quote\QuoteServiceInterface;
 use App\Services\Telegram\Video\VideoServiceInterface;
@@ -33,10 +34,14 @@ class NewMessageFromMonyaHandler extends AbstractTelegramHandler
             $telegramFile = $message->voice ?? $message->videoNote;
 
             if ($telegramFile !== null && $fileService->doesntExists($telegramFile)) {
-                $fileable = match ($telegramFile::class) {
-                    TelegramVideoNote::class => $videoService->createFor($telegramFile),
-                    TelegramVoice::class => $voiceService->createFor($telegramFile),
-                };
+                try {
+                    $fileable = match ($telegramFile::class) {
+                        TelegramVideoNote::class => $videoService->createFor($telegramFile),
+                        TelegramVoice::class => $voiceService->createFor($telegramFile),
+                    };
+                } catch (TelegramFileExistsInDatabaseException) {
+                    return;
+                }
 
                 Log::info("{$fileable->file->file_path} createFord...");
 

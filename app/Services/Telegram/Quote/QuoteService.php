@@ -34,7 +34,7 @@ class QuoteService extends AbstractService implements QuoteServiceInterface
 
         $stat = $this->statService->createFor($quote);
 
-        $message = SpiritBox::sendSticker(InputFile::fromLocalFile($imagePath), replyMarkup: (new StatInlineKeyboardFactory)->make()->build(['stat' => $stat]));
+        $message = SpiritBox::sendSticker(new InputFile($imagePath), replyMarkup: (new StatInlineKeyboardFactory)->make()->build(['stat' => $stat]));
 
         $this->fileService->createFor($message->sticker, $quote);
 

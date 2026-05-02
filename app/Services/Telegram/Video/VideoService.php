@@ -7,6 +7,7 @@ namespace App\Services\Telegram\Video;
 use App\Models\Video;
 use App\Services\Telegram\File\FileServiceInterface;
 use App\Services\Telegram\Stat\StatServiceInterface;
+use Illuminate\Support\Facades\DB;
 use Lowel\LaravelServiceMaker\Services\AbstractService;
 use Phptg\BotApi\Type\Video as TelegramVideo;
 use Phptg\BotApi\Type\VideoNote;
@@ -20,19 +21,21 @@ class VideoService extends AbstractService implements VideoServiceInterface
 
     public function createFor(VideoNote|TelegramVideo $telegramVideo): Video
     {
-        $video = Video::create([
-            'duration' => $telegramVideo->duration,
-            'length' => $telegramVideo->length,
-            'width' => $telegramVideo->width ?? $telegramVideo->thumbnail?->width,
-            'height' => $telegramVideo->height ?? $telegramVideo->thumbnail?->height,
-        ]);
+        return DB::transaction(function () use ($telegramVideo) {
+            $video = Video::create([
+                'duration' => $telegramVideo->duration,
+                'length' => $telegramVideo->length,
+                'width' => $telegramVideo->width ?? $telegramVideo->thumbnail?->width,
+                'height' => $telegramVideo->height ?? $telegramVideo->thumbnail?->height,
+            ]);
 
-        $this->statService->createFor(media: $video);
+            $this->statService->createFor(media: $video);
 
-        $this->fileService->createFor(
-            $telegramVideo, $video
-        );
+            $this->fileService->createFor(
+                $telegramVideo, $video
+            );
 
-        return $video;
+            return $video;
+        });
     }
 }

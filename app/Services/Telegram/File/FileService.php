@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace App\Services\Telegram\File;
 
 use App\Exceptions\Services\Telegram\File\CannotDownloadFileFromTelegramException;
+use App\Exceptions\Services\Telegram\File\TelegramFileExistsInDatabaseException;
 use App\Models\Media\AbstractMediaModel;
+use App\Models\Meme;
+use App\Models\Movie;
+use App\Models\Music;
 use App\Models\Quote;
 use App\Models\TgFile;
 use App\Models\User;
@@ -19,6 +23,8 @@ use Illuminate\Support\Facades\Storage;
 use Lowel\LaravelServiceMaker\Services\AbstractService;
 use Lowel\Telepath\Facades\SpiritBox;
 use Phptg\BotApi\FailResult;
+use Phptg\BotApi\Type\Animation;
+use Phptg\BotApi\Type\Audio;
 use Phptg\BotApi\Type\PhotoSize as TelegramPhoto;
 use Phptg\BotApi\Type\Sticker\Sticker;
 use Phptg\BotApi\Type\Video as TelegramVideo;
@@ -29,7 +35,7 @@ class FileService extends AbstractService implements FileServiceInterface
 {
     public function __construct() {}
 
-    public function createFor(TelegramVoice|TelegramVideo|TelegramVideoNote|TelegramPhoto|Sticker $telegramFile, AbstractMediaModel $fileable): TgFile
+    public function createFor(TelegramVoice|TelegramVideo|TelegramVideoNote|TelegramPhoto|Sticker|Audio|Animation $telegramFile, AbstractMediaModel $fileable): TgFile
     {
         $file = SpiritBox::getFile($telegramFile->fileId);
         if ($file instanceof FailResult) {
@@ -40,10 +46,10 @@ class FileService extends AbstractService implements FileServiceInterface
 
         Storage::disk('public')->put(
             $file->filePath,
-            $fileContent,
+            $fileContent->getBody(),
         );
 
-        return TgFile::create([
+        $tgFile = new TgFile([
             'file_id' => $file->fileId,
             'file_unique_id' => $file->fileUniqueId,
             'file_size' => $file->fileSize,
@@ -51,23 +57,69 @@ class FileService extends AbstractService implements FileServiceInterface
             'fileable_type' => $fileable::class,
             'fileable_id' => $fileable->id,
         ]);
+
+        if ($this->existsInDatabase($tgFile)) {
+            throw new TelegramFileExistsInDatabaseException;
+        } else {
+            $tgFile->save();
+        }
+
+        return $tgFile;
     }
 
-    public function exists(TelegramVoice|TelegramVideo|TelegramVideoNote $telegramFile): bool
+    public function existsInDatabase(TgFile $file): bool
+    {
+        /** @var TgFile $fileToCompare */
+        foreach (TgFile::lazy() as $fileToCompare) {
+            if ($this->compare($file, $fileToCompare)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function compare(TgFile $comparable, TgFile $compare): bool
+    {
+        return file_exists($comparable->storagePath) && file_exists($compare->storagePath) &&
+                filesize($comparable->storagePath) === filesize($compare->storagePath) &&
+                md5_file($compare->storagePath) === md5_file($comparable->storagePath);
+    }
+
+    public function delete(TgFile $file): void
+    {
+        if (file_exists($file->storagePath)) {
+            unlink($file->storagePath);
+        }
+
+        $file->delete();
+    }
+
+    public function exists(TelegramVoice|TelegramVideo|TelegramVideoNote|Audio $telegramFile): bool
     {
         return TgFile::where('file_id', $telegramFile->fileId)->exists();
     }
 
-    public function doesntExists(TelegramVideo|TelegramVoice|TelegramVideoNote $telegramFile): bool
+    public function doesntExists(TelegramVideo|TelegramVoice|TelegramVideoNote|Audio $telegramFile): bool
     {
         return ! $this->exists($telegramFile);
     }
 
     public function fullTextMatch(string $data, int $offset = 0, int $limit = 10): Collection
     {
+        // if data is empty return user usages
+        if (empty(trim($data))) {
+            /**
+             * @var User
+             */
+            $user = Auth::guard('telegram')->user();
+
+            return $user->tgFiles()->distinct()->with('fileable.stat')->latest()->limit($limit)->offset($offset)->get();
+        }
+
         $words = collect(explode(' ', $data))
-            ->map(fn($word) => trim(mb_strtolower($word)))
-            ->filter(fn($word) => mb_strlen($word) > 1)
+            ->map(fn ($word) => trim(mb_strtolower($word)))
+            ->filter(fn ($word) => mb_strlen($word) > 1)
             ->values();
 
         if ($words->isEmpty()) {
@@ -77,7 +129,9 @@ class FileService extends AbstractService implements FileServiceInterface
 
         $videoClass = Video::class;
         $voiceClass = Voice::class;
-        $quoteClass = Quote::class;
+        $movieClass = Movie::class;
+        $musicClass = Music::class;
+        $memeClass = Meme::class;
 
         $query = TgFile::query()
             ->select('tg_files.*')
@@ -90,32 +144,38 @@ class FileService extends AbstractService implements FileServiceInterface
                 $join->on('tg_files.fileable_id', '=', 'voices.id')
                     ->where('tg_files.fileable_type', '=', $voiceClass);
             })
-            ->leftJoin('quotes', function ($join) use ($quoteClass) {
-                $join->on('tg_files.fileable_id', '=', 'quotes.id')
-                    ->where('tg_files.fileable_type', '=', $quoteClass);
+            ->leftJoin('movies', function ($join) use ($movieClass) {
+                $join->on('tg_files.fileable_id', '=', 'movies.id')
+                    ->where('tg_files.fileable_type', '=', $movieClass);
+            })->leftJoin('music', function ($join) use ($musicClass) {
+                $join->on('tg_files.fileable_id', '=', 'music.id')
+                    ->where('tg_files.fileable_type', '=', $musicClass);
+            })->leftJoin('memes', function ($join) use ($memeClass) {
+                $join->on('tg_files.fileable_id', '=', 'memes.id')
+                    ->where('tg_files.fileable_type', '=', $memeClass);
             })
-            ->addSelect(DB::raw("COALESCE(videos.text, voices.text, quotes.text, '') as combined_text"));
+            ->addSelect(DB::raw("COALESCE(videos.text, voices.text, music.text, movies.text, memes.text, '') as combined_text"));
 
         // Поиск
         $query->where(function ($q) use ($words, $data) {
             foreach ($words as $word) {
                 // Используем ILIKE (регистронезависимый поиск в Postgres)
-                $q->orWhereRaw("COALESCE(videos.text, voices.text, quotes.text, '') ILIKE ?", ["%{$word}%"]);
+                $q->orWhereRaw("COALESCE(videos.text, voices.text, music.text, movies.text, memes.text, '') ILIKE ?", ["%{$word}%"]);
             }
 
             // Аналог FUZZY_MATCH в Postgres через расширение pg_trgm (оператор %)
             // Также можно использовать similarity() для оценки схожести
-            $q->orWhereRaw("COALESCE(videos.text, voices.text, quotes.text, '') % ?", [$data]);
+            $q->orWhereRaw("COALESCE(videos.text, voices.text, music.text, movies.text, memes.text, '') % ?", [$data]);
         });
 
         // Релевантность для Postgres
         // similarity() возвращает от 0 до 1, поэтому умножаем на 100 для соответствия вашей логике > 60
         $quotedData = DB::getPdo()->quote($data);
-        $relevanceSql = "similarity(COALESCE(videos.text, voices.text, quotes.text, ''), $quotedData) * 100";
+        $relevanceSql = "similarity(COALESCE(videos.text, voices.text, music.text, movies.text, memes.text, ''), $quotedData) * 100";
 
         foreach ($words as $word) {
             $quotedWord = DB::getPdo()->quote("%{$word}%");
-            $relevanceSql .= " + (CASE WHEN COALESCE(videos.text, voices.text, quotes.text, '') ILIKE $quotedWord THEN 30 ELSE 0 END)";
+            $relevanceSql .= " + (CASE WHEN COALESCE(videos.text, voices.text, music.text, movies.text, memes.text, '') ILIKE $quotedWord THEN 30 ELSE 0 END)";
         }
 
         return $query->with('fileable.stat')
@@ -158,5 +218,21 @@ class FileService extends AbstractService implements FileServiceInterface
     public function randomQuote(): TgFile
     {
         return TgFile::where('fileable_type', Quote::class)->inRandomOrder()->first();
+    }
+
+    public function randomMeme(): TgFile
+    {
+        return TgFile::where('fileable_type', Meme::class)->inRandomOrder()->first();
+    }
+
+    public function randomMovie(): TgFile
+    {
+        return TgFile::where('fileable_type', Movie::class)->inRandomOrder()->first();
+
+    }
+
+    public function randomMusic(): TgFile
+    {
+        return TgFile::where('fileable_type', Music::class)->inRandomOrder()->first();
     }
 }

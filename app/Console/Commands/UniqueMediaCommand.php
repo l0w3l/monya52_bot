@@ -3,8 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\TgFile;
+use App\Services\Telegram\File\FileServiceInterface;
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -37,22 +37,21 @@ class UniqueMediaCommand extends Command
             /**
              * @var Collection<int, TgFile>
              */
-            $clear = new Collection();
+            $clear = new Collection;
+            $fileService = app()->make(FileServiceInterface::class);
 
-            TgFile::chunk(100, function (Collection $chunk) use (&$clear, &$copiesCount) {
+            TgFile::chunk(100, function (Collection $chunk) use (&$clear, &$copiesCount, $fileService) {
                 foreach ($chunk as $tgFile) {
                     $this->output->write("\rFile process: {$tgFile->id}...");
 
                     foreach ($clear as $clearTgFile) {
                         if (
-                            file_exists($tgFile->storagePath) && file_exists($clearTgFile->storagePath) &&
-                            filesize($tgFile->storagePath) === filesize($clearTgFile->storagePath) &&
-                            md5_file($clearTgFile->storagePath) === md5_file($tgFile->storagePath)
+                            $fileService->compare($tgFile, $clearTgFile)
                         ) {
                             $this->output->write(PHP_EOL);
 
                             $this->alert("Copy was detected! ID: {$tgFile->id}");
-                            $tgFile->delete();
+                            $fileService->delete($tgFile);
                             $copiesCount++;
                             $tgFile = null;
                             break;
