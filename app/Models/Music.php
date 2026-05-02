@@ -43,7 +43,7 @@ class Music extends AbstractMediaModel
     {
         app()->make(StatServiceInterface::class)->incUsageFor($this);
 
-        $message = SpiritBox::sendAudio($this->file->file_id, caption: '<blockquote expandable>'.substr($this->file->fileable->text, 0, 1024).'</blockquote>', replyMarkup: (new StatInlineKeyboardFactory)->make()->build(['stat' => $this->stat]));
+        $message = SpiritBox::sendAudio($this->file->file_id, replyMarkup: (new StatInlineKeyboardFactory)->make()->build(['stat' => $this->stat]));
 
         if ($message instanceof FailResult) {
             throw new RuntimeException('Error while send meme\n\n'.$this->toJson(JSON_PRETTY_PRINT));
